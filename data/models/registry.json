@@ -1,0 +1,51 @@
+{
+  "production_version": "v3",
+  "production_locked": true,
+  "versions": {
+    "v1": {
+      "version": "v1",
+      "file": "v1.pkl",
+      "algorithm": "rf",
+      "features": [
+        "Ct_Value"
+      ],
+      "metrics": {
+        "sensitivity": 0.95,
+        "specificity": 0.95,
+        "roc_auc": 0.98
+      },
+      "dataset_hash": "abc",
+      "created_at": "2026-01-01T00:00:00+00:00",
+      "status": "validated",
+      "file_checksum": "",
+      "locked": false,
+      "validation_protocol_id": "VAL-F52B776424",
+      "change_request_id": "CR-1"
+    },
+    "v3": {
+      "version": "v3",
+      "file": "v3.pkl",
+      "algorithm": "rf",
+      "features": [
+        "Ct_Value"
+      ],
+      "metrics": {
+        "sensitivity": 0.96,
+        "specificity": 0.96,
+        "roc_auc": 0.99
+      },
+      "dataset_hash": "def",
+      "created_at": "2026-07-16T21:23:15.449216+00:00",
+      "status": "locked",
+      "file_checksum": "",
+      "locked": true,
+      "validation_protocol_id": null,
+      "change_request_id": "CR-1"
+    }
+  },
+  "ab_test": {
+    "enabled": false,
+    "challenger_version": "",
+    "traffic_pct": 0.1
+  }
+}

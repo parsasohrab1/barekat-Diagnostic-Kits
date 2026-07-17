@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Barekat Lab Operator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1c1a;
+      --panel: #162824;
+      --line: #2a433c;
+      --text: #e7f2ee;
+      --muted: #9bb5ac;
+      --accent: #3d9b7a;
+      --warn: #d4a017;
+      --danger: #c45c5c;
+      --ok: #4caf82;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Vazirmatn", sans-serif;
+      background:
+        radial-gradient(ellipse at 20% 0%, #1a3a32 0%, transparent 50%),
+        linear-gradient(180deg, #0f1c1a 0%, #122421 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0.02em;
+    }
+    header p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.25rem 1.5rem 3rem;
+      display: grid;
+      gap: 1.25rem;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
+    }
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 0.9rem 1rem;
+    }
+    .stat strong { display: block; font-size: 1.5rem; margin-top: 0.2rem; }
+    .stat span { color: var(--muted); font-size: 0.8rem; }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 1.1rem 1.2rem;
+    }
+    section h2 {
+      margin: 0 0 0.85rem;
+      font-size: 1.05rem;
+    }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.35rem; }
+    input, select, button, textarea {
+      font: inherit;
+      border-radius: 0;
+    }
+    input, select, textarea {
+      width: 100%;
+      background: #0f1c1a;
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 0.55rem 0.65rem;
+      margin-bottom: 0.7rem;
+    }
+    button {
+      background: var(--accent);
+      color: #04140f;
+      border: none;
+      padding: 0.6rem 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: right; padding: 0.55rem 0.4rem; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--line);
+    }
+    .badge.ok { color: var(--ok); border-color: var(--ok); }
+    .badge.warn { color: var(--warn); border-color: var(--warn); }
+    .badge.fail { color: var(--danger); border-color: var(--danger); }
+    .msg { margin-top: 0.6rem; color: var(--muted); font-size: 0.85rem; white-space: pre-wrap; }
+    .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Barekat Lab Operator</h1>
+      <p>بارگذاری qPCR · وضعیت Job · QC · تأیید گزارش</p>
+    </div>
+    <div class="actions">
+      <button class="secondary" id="btnRefresh">بروزرسانی</button>
+    </div>
+  </header>
+  <main>
+    <div class="stats" id="stats"></div>
+
+    <section>
+      <h2>واردسازی خروجی دستگاه (CSV / RDML)</h2>
+      <div class="row">
+        <div>
+          <label>فایل</label>
+          <input type="file" id="qpcrFile" accept=".csv,.rdml,.xml" />
+        </div>
+        <div>
+          <label>فرمت</label>
+          <select id="qpcrFormat">
+            <option value="auto">auto</option>
+            <option value="csv">csv</option>
+            <option value="rdml">rdml</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Lot کالیبراسیون</label>
+          <input id="calLot" placeholder="LOT-2026-A" />
+        </div>
+        <div>
+          <label>Batch ID</label>
+          <input id="batchIdImport" placeholder="BATCH-001" />
+        </div>
+      </div>
+      <button id="btnImport">آپلود و ثبت نمونه‌ها</button>
+      <div class="msg" id="importMsg"></div>
+    </section>
+
+    <section>
+      <h2>بچ و کنترل مثبت / منفی</h2>
+      <div class="row">
+        <div>
+          <label>Batch ID</label>
+          <input id="batchId" placeholder="BATCH-001" />
+        </div>
+        <div>
+          <label>Lot Number</label>
+          <input id="lotNumber" placeholder="LOT-2026-A" />
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btnCreateBatch">ایجاد بچ</button>
+        <button class="secondary" id="btnValidateBatch">اعتبارسنجی کنترل‌ها</button>
+      </div>
+      <div class="row" style="margin-top:0.8rem">
+        <div>
+          <label>نمونه کنترل مثبت</label>
+          <input id="posCtrl" placeholder="PC-001" />
+        </div>
+        <div>
+          <label>نمونه کنترل منفی</label>
+          <input id="negCtrl" placeholder="NC-001" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Ct کنترل مثبت</label>
+          <input id="posCt" type="number" step="0.1" placeholder="24.5" />
+        </div>
+        <div>
+          <label>Ct کنترل منفی</label>
+          <input id="negCt" type="number" step="0.1" placeholder="40.0" />
+        </div>
+      </div>
+      <button class="secondary" id="btnRegisterControls">ثبت کنترل‌ها</button>
+      <div class="msg" id="batchMsg"></div>
+    </section>
+
+    <section>
+      <h2>وضعیت Jobها</h2>
+      <div id="jobsTable"></div>
+    </section>
+
+    <section>
+      <h2>نمونه‌های اخیر و QC</h2>
+      <div id="samplesTable"></div>
+    </section>
+
+    <section>
+      <h2>تأیید گزارش</h2>
+      <div class="row">
+        <div>
+          <label>Report ID</label>
+          <input id="reportId" type="number" placeholder="1" />
+        </div>
+        <div>
+          <label>تصمیم</label>
+          <select id="approvalDecision">
+            <option value="approved">تأیید</option>
+            <option value="rejected">رد</option>
+          </select>
+        </div>
+      </div>
+      <label>یادداشت</label>
+      <textarea id="approvalNote" rows="2" placeholder="تأیید پاتولوژیست"></textarea>
+      <button id="btnApprove">ثبت تأیید</button>
+      <div class="msg" id="approveMsg"></div>
+    </section>
+
+    <section>
+      <h2>ارزیابی پایلوت (Se/Sp + CI)</h2>
+      <button id="btnPilotEval">اجرای ارزیابی روی data/pilot/pilot_qpcr.csv</button>
+      <div class="msg" id="pilotMsg"></div>
+    </section>
+  </main>
+
+  <script>
+    const API = "/api/v1";
+
+    async function api(path, options = {}) {
+      const res = await fetch(API + path, options);
+      const text = await res.text();
+      let data;
+      try { data = text ? JSON.parse(text) : {}; } catch { data = { detail: text }; }
+      if (!res.ok) throw new Error(data.detail || res.statusText);
+      return data;
+    }
+
+    function badge(status) {
+      const s = String(status || "").toLowerCase();
+      let cls = "";
+      if (["completed", "validated", "approved", "ok"].includes(s)) cls = "ok";
+      else if (["pending", "running", "controls_pending", "open"].includes(s)) cls = "warn";
+      else if (["failed", "rejected"].includes(s)) cls = "fail";
+      return `<span class="badge ${cls}">${status}</span>`;
+    }
+
+    async function refreshSummary() {
+      const s = await api("/dashboard/summary");
+      document.getElementById("stats").innerHTML = [
+        ["نمونه‌ها", s.samples_total],
+        ["در انتظار", s.samples_pending],
+        ["Job فعال", s.jobs_running],
+        ["Job تمام‌شده", s.jobs_completed],
+        ["بچ باز", s.batches_open],
+        ["بچ معتبر", s.batches_validated],
+        ["در انتظار تأیید", s.reports_pending_approval],
+        ["QC ناموفق", s.recent_qc_failures],
+      ].map(([k, v]) => `<div class="stat"><span>${k}</span><strong>${v}</strong></div>`).join("");
+    }
+
+    async function refreshJobs() {
+      const jobs = await api("/diagnosis/jobs?limit=20");
+      if (!jobs.length) {
+        document.getElementById("jobsTable").innerHTML = "<p class='msg'>Jobی ثبت نشده</p>";
+        return;
+      }
+      document.getElementById("jobsTable").innerHTML = `
+        <table>
+          <thead><tr><th>Job</th><th>نمونه</th><th>وضعیت</th><th>پیشرفت</th></tr></thead>
+          <tbody>
+            ${jobs.map(j => `<tr>
+              <td>${j.job_id.slice(0, 8)}…</td>
+              <td>${j.sample_id}</td>
+              <td>${badge(j.status)}</td>
+              <td>${Math.round((j.progress || 0) * 100)}%</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    async function refreshSamples() {
+      const samples = await api("/samples/?limit=20");
+      if (!samples.length) {
+        document.getElementById("samplesTable").innerHTML = "<p class='msg'>نمونه‌ای نیست</p>";
+        return;
+      }
+      document.getElementById("samplesTable").innerHTML = `
+        <table>
+          <thead><tr><th>نمونه</th><th>نقش</th><th>بچ</th><th>وضعیت</th><th>Lot</th></tr></thead>
+          <tbody>
+            ${samples.map(s => `<tr>
+              <td>${s.sample_id}</td>
+              <td>${s.sample_role || "patient"}</td>
+              <td>${s.batch_id || "—"}</td>
+              <td>${badge(s.status)}</td>
+              <td>${s.calibration_lot || "—"}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    async function refreshAll() {
+      await Promise.all([refreshSummary(), refreshJobs(), refreshSamples()]);
+    }
+
+    document.getElementById("btnRefresh").onclick = () => refreshAll().catch(e => alert(e.message));
+
+    document.getElementById("btnImport").onclick = async () => {
+      const msg = document.getElementById("importMsg");
+      try {
+        const file = document.getElementById("qpcrFile").files[0];
+        if (!file) throw new Error("فایل انتخاب نشده");
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("format", document.getElementById("qpcrFormat").value);
+        const lot = document.getElementById("calLot").value.trim();
+        const batch = document.getElementById("batchIdImport").value.trim();
+        if (lot) fd.append("calibration_lot", lot);
+        if (batch) fd.append("batch_id", batch);
+        fd.append("persist", "true");
+        const res = await fetch(API + "/import/qpcr", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "خطا");
+        msg.textContent = `وارد شد: ${data.imported}\n` + JSON.stringify(data.summary, null, 2);
+        await refreshAll();
+      } catch (e) { msg.textContent = e.message; }
+    };
+
+    document.getElementById("btnCreateBatch").onclick = async () => {
+      const msg = document.getElementById("batchMsg");
+      try {
+        const body = {
+          batch_id: document.getElementById("batchId").value.trim(),
+          lot_number: document.getElementById("lotNumber").value.trim(),
+          kit_type: "qpcr",
+        };
+        const data = await api("/batches/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        msg.textContent = `بچ ایجاد شد: ${data.batch_id} (${data.status})`;
+        await refreshSummary();
+      } catch (e) { msg.textContent = e.message; }
+    };
+
+    document.getElementById("btnRegisterControls").onclick = async () => {
+      const msg = document.getElementById("batchMsg");
+      try {
+        const batchId = document.getElementById("batchId").value.trim();
+        const body = {
+          positive_control_sample_id: document.getElementById("posCtrl").value.trim() || null,
+          negative_control_sample_id: document.getElementById("negCtrl").value.trim() || null,
+          positive_control_ct: Number(document.getElementById("posCt").value) || null,
+          negative_control_ct: Number(document.getElementById("negCt").value) || null,
+        };
+        const data = await api(`/batches/${batchId}/controls`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        msg.textContent = `کنترل‌ها ثبت شد\npos Ct=${data.positive_control_ct} · neg Ct=${data.negative_control_ct}`;
+      } catch (e) { msg.textContent = e.message; }
+    };
+
+    document.getElementById("btnValidateBatch").onclick = async () => {
+      const msg = document.getElementById("batchMsg");
+      try {
+        const batchId = document.getElementById("batchId").value.trim();
+        const data = await api(`/batches/${batchId}/validate`, { method: "POST" });
+        msg.textContent = `${data.validation_message}\nvalidated=${data.controls_validated}`;
+        await refreshSummary();
+      } catch (e) { msg.textContent = e.message; }
+    };
+
+    document.getElementById("btnApprove").onclick = async () => {
+      const msg = document.getElementById("approveMsg");
+      try {
+        const id = document.getElementById("reportId").value;
+        const body = {
+          decision: document.getElementById("approvalDecision").value,
+          note: document.getElementById("approvalNote").value || null,
+        };
+        const data = await api(`/diagnosis/reports/${id}/approve`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        msg.textContent = `گزارش ${data.report_id}: ${data.approval_status} توسط ${data.approved_by_email}`;
+        await refreshSummary();
+      } catch (e) { msg.textContent = e.message; }
+    };
+
+    document.getElementById("btnPilotEval").onclick = async () => {
+      const msg = document.getElementById("pilotMsg");
+      try {
+        const data = await api("/ml/evaluate-pilot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data_path: "data/pilot/pilot_qpcr.csv" }),
+        });
+        msg.textContent =
+          `Accuracy: ${data.accuracy.toFixed(3)}\n` +
+          `Sensitivity: ${data.sensitivity.value.toFixed(3)} ` +
+          `[${data.sensitivity.ci_lower.toFixed(3)}, ${data.sensitivity.ci_upper.toFixed(3)}]\n` +
+          `Specificity: ${data.specificity.value.toFixed(3)} ` +
+          `[${data.specificity.ci_lower.toFixed(3)}, ${data.specificity.ci_upper.toFixed(3)}]\n` +
+          `ROC-AUC: ${data.roc_auc.toFixed(3)}`;
+      } catch (e) { msg.textContent = e.message; }
+    };
+
+    refreshAll().catch(e => console.error(e));
+  </script>
+</body>
+</html>

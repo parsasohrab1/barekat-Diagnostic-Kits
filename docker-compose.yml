@@ -1,0 +1,79 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      LOG_JSON: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    volumes:
+      - ./data:/data
+    command: uvicorn barekat_diagnostics.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build: .
+    env_file: .env
+    environment:
+      PIPELINE_MODE: simulated
+      PIPELINE_WORK_DIR: /data/processed
+      LOG_JSON: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./data:/data
+    command: celery -A barekat_diagnostics.tasks.celery_app worker --loglevel=info --concurrency=2
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: barekat
+      POSTGRES_PASSWORD: barekat
+      POSTGRES_DB: barekat_diagnostics
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U barekat -d barekat_diagnostics"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: barekat
+      MINIO_ROOT_PASSWORD: barekatsecret
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
