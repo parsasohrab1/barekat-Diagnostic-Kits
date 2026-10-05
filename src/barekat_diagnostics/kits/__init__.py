@@ -1,4 +1,4 @@
-"""انواع کیت تشخیصی."""
+"""Diagnostic kit types."""
 
 from barekat_diagnostics.kits.base import KitType, QCFlag, QCResult, QCSeverity
 from barekat_diagnostics.kits.registry import get_kit_adapter

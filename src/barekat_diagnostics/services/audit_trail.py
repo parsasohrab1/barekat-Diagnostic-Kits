@@ -1,4 +1,4 @@
-"""سرویس Audit Trail — لاگ append-only با زنجیره هش."""
+"""Audit Trail service — append-only log with a hash chain."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ class AuditTrailService:
 
   @staticmethod
   def _normalize_ts(created_at: datetime) -> str:
-    # SQLite اغلب timezone را حذف می‌کند — هش باید پایدار بماند
+    # SQLite often drops the timezone — the hash must remain stable
     if created_at.tzinfo is not None:
       created_at = created_at.astimezone(timezone.utc).replace(tzinfo=None)
     return created_at.isoformat(timespec="microseconds")
@@ -131,7 +131,7 @@ class AuditTrailService:
     return {"valid": True, "checked": len(rows)}
 
   def expire_before(self) -> int:
-    """حذف رکوردهای قدیمی‌تر از retention (فقط برای نگهداری قانونی)."""
+    """Delete records older than the retention period (for legal retention only)."""
     years = get_settings().audit_retention_years
     cutoff = datetime.now(timezone.utc) - timedelta(days=365 * years)
     q = self.db.query(AuditLog).filter(AuditLog.created_at < cutoff)

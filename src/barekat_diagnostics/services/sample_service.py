@@ -1,4 +1,4 @@
-"""سرویس مدیریت نمونه."""
+"""Sample management service."""
 
 import json
 

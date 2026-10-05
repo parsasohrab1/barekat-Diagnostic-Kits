@@ -1,4 +1,4 @@
-"""API ناوگان مدل و دستگاه‌های edge."""
+"""Model fleet and edge devices API."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
@@ -101,13 +101,13 @@ def get_manifest(
 
 @router.get("/download")
 def download_model(
-  path: str = Query(..., description="مسیر فایل ONNX از manifest"),
+  path: str = Query(..., description="ONNX file path from the manifest"),
   user: CurrentUser = Depends(require_permission(Permission.EDGE_OPERATE)),
 ):
   _ = user
   file_path = Path(path)
   if not file_path.exists():
-    raise HTTPException(status_code=404, detail="فایل مدل یافت نشد")
+    raise HTTPException(status_code=404, detail="Model file not found")
   return FileResponse(file_path, filename=file_path.name, media_type="application/octet-stream")
 
 

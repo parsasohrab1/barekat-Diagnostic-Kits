@@ -1,4 +1,4 @@
-"""بسته ONNX قفل‌شده برای کیوسک/دستگاه edge."""
+"""Locked ONNX bundle for kiosk/edge device."""
 
 from __future__ import annotations
 
@@ -37,28 +37,28 @@ def build_locked_edge_bundle(
   settings: Settings | None = None,
   run_benchmark: bool = True,
 ) -> dict[str, Any]:
-  """ساخت بسته کیوسک: ONNX + lockfile + checksum + signature + SLA."""
+  """Build the kiosk bundle: ONNX + lockfile + checksum + signature + SLA."""
   settings = settings or get_settings()
   registry = ModelRegistry.load()
   version = model_version or registry.production_version
 
   if version not in registry.versions:
-    raise BundleError(f"نسخه {version} در registry نیست")
+    raise BundleError(f"Version {version} is not in the registry")
 
   info = registry.versions[version]
   if registry.production_locked and version == registry.production_version:
-    # فقط نسخه production قفل‌شده برای کیوسک مجاز است
+    # Only the locked production version is allowed for the kiosk
     pass
   elif info.status not in {"production", "locked", "validated"}:
-    raise BundleError(f"نسخه {version} برای بسته‌بندی edge تأیید نشده (status={info.status})")
+    raise BundleError(f"Version {version} is not approved for edge packaging (status={info.status})")
 
   model_dir = Path(settings.model_path)
   pkl = model_dir / info.file
   if not pkl.exists():
-    # fallback به classifier پیش‌فرض
+    # fallback to the default classifier
     pkl = model_dir / settings.classifier_model
   if not pkl.exists():
-    raise BundleError(f"فایل مدل یافت نشد: {pkl}")
+    raise BundleError(f"Model file not found: {pkl}")
 
   out_root = Path(output_dir or settings.edge_bundle_dir)
   bundle_dir = out_root / f"kiosk-{version}"
@@ -69,7 +69,7 @@ def build_locked_edge_bundle(
   onnx_path = bundle_dir / f"model_{version}.onnx"
   export_sklearn_to_onnx(pkl, onnx_path, settings=settings)
 
-  # بهینه‌سازی session: warm-up + benchmark
+  # session optimization: warm-up + benchmark
   bench = None
   if run_benchmark:
     try:
@@ -90,7 +90,7 @@ def build_locked_edge_bundle(
     sla_ok = float(bench["p95_ms"]) <= sla_ms
     if settings.edge_enforce_latency_sla and not sla_ok:
       raise BundleError(
-        f"latency SLA رد شد: p95={bench['p95_ms']}ms > {sla_ms}ms"
+        f"latency SLA failed: p95={bench['p95_ms']}ms > {sla_ms}ms"
       )
 
   checksum = file_sha256(onnx_path) or hashlib.sha256(onnx_path.read_bytes()).hexdigest()
@@ -115,7 +115,7 @@ def build_locked_edge_bundle(
   lock_path = bundle_dir / "model.lock.json"
   lock_path.write_text(json.dumps(lockfile, indent=2, ensure_ascii=False), encoding="utf-8")
 
-  # کپی sidecar metadata
+  # copy sidecar metadata
   meta_src = onnx_path.with_suffix(".onnx.json")
   if meta_src.exists():
     meta = json.loads(meta_src.read_text(encoding="utf-8"))
@@ -151,36 +151,36 @@ def load_and_verify_locked_model(
   *,
   settings: Settings | None = None,
 ) -> dict[str, Any]:
-  """بارگذاری و تأیید قفل/checksum/امضای مدل قبل از inference."""
+  """Load and verify the model lock/checksum/signature before inference."""
   settings = settings or get_settings()
   path = Path(onnx_path)
   lock_path = path.parent / "model.lock.json"
   if not lock_path.exists():
-    # sidecar بدون lock — فقط در حالت غیرسخت‌گیر
+    # sidecar without lock — only in non-strict mode
     if settings.edge_require_locked_model:
-      raise BundleError("model.lock.json الزامی است")
+      raise BundleError("model.lock.json is required")
     return {"locked": False, "verified": False}
 
   lock = json.loads(lock_path.read_text(encoding="utf-8"))
   if not lock.get("locked", False) and settings.edge_require_locked_model:
-    raise BundleError("مدل قفل نشده است")
+    raise BundleError("The model is not locked")
 
   checksum = hashlib.sha256(path.read_bytes()).hexdigest()
   expected = lock.get("checksum_sha256", "")
-  # مقایسه با 32 یا 64 کاراکتر
+  # compare with 32 or 64 characters
   if expected and not (
     checksum.startswith(expected) or expected.startswith(checksum[: len(expected)])
   ):
-    # مقایسه کامل اگر هر دو 64 باشند
+    # full comparison if both are 64
     full = hashlib.sha256(path.read_bytes()).hexdigest()
     short = file_sha256(path)
     if expected not in {full, short, full[:32], short}:
-      raise BundleError("checksum مدل با lockfile مطابقت ندارد")
+      raise BundleError("The model checksum does not match the lockfile")
 
   sig = lock.get("signature", "")
   check_val = lock.get("checksum_sha256", "")
   if sig and not verify_bundle_signature(check_val, sig, settings.edge_bundle_secret):
-    raise BundleError("امضای مدل نامعتبر است")
+    raise BundleError("The model signature is invalid")
 
   return {
     "locked": True,

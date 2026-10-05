@@ -1,4 +1,4 @@
-"""پیشنهاد و اجرای reassessment پس از QC مشکوک."""
+"""Reassessment suggestion and execution after suspicious QC."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ class ReassessmentError(Exception):
 
 
 def should_suggest_reassessment(report: DiagnosisReport) -> bool:
-  """آیا QC/نتیجه مشکوک است و reassessment پیشنهاد شود؟"""
+  """Is the QC/result suspicious and should reassessment be suggested?"""
   if report.recommendation in {"retest", "invalid", "reassess"}:
     return True
   if not report.qc_passed:
@@ -113,18 +113,18 @@ class ReassessmentService:
   ) -> ReassessmentCompareResponse:
     row = self.get(reassessment_id)
     if not row:
-      raise ReassessmentError("درخواست reassessment یافت نشد")
+      raise ReassessmentError("Reassessment request not found")
     if row.status not in {"suggested", "accepted"}:
-      raise ReassessmentError(f"وضعیت {row.status} قابل اجرا نیست")
+      raise ReassessmentError(f"Status {row.status} cannot be executed")
 
     sample = body.sample
     if sample is None:
-      # ساخت نمونه retest از روی نمونه قبلی با suffix
+      # Build a retest sample from the previous sample with a suffix
       from barekat_diagnostics.services.sample_service import SampleService
 
       original = SampleService(self.db).get_sample(row.original_sample_id)
       if not original:
-        raise ReassessmentError("نمونه اصلی یافت نشد — sample را در body بفرستید")
+        raise ReassessmentError("Original sample not found — send the sample in the body")
       base = SampleService(self.db).sample_to_input(original)
       sample = base.model_copy(
         update={"sample_id": f"{row.original_sample_id}-RT{uuid.uuid4().hex[:4].upper()}"}

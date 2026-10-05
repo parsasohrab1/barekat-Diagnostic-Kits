@@ -1,4 +1,4 @@
-"""API داشبورد اپراتور آزمایشگاه."""
+"""Laboratory operator dashboard API."""
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session

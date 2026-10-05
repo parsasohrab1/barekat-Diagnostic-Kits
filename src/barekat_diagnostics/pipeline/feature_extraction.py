@@ -1,4 +1,4 @@
-"""استخراج ویژگی‌های کلیدی از داده‌های کیت تشخیصی."""
+"""Extract key features from diagnostic kit data."""
 
 import numpy as np
 
@@ -6,7 +6,7 @@ from barekat_diagnostics.pipeline.preprocessing import preprocess_curve
 
 
 def estimate_ct(curve: np.ndarray, threshold: float = 0.5) -> float:
-  """تخمین Ct value از منحنی رشد."""
+  """Estimate the Ct value from the growth curve."""
   processed = preprocess_curve(curve)
   crossings = np.where(processed >= threshold)[0]
   if len(crossings) == 0:
@@ -15,7 +15,7 @@ def estimate_ct(curve: np.ndarray, threshold: float = 0.5) -> float:
 
 
 def extract_curve_features(curve: list[float] | np.ndarray) -> dict[str, float]:
-  """استخراج ویژگی‌های منحنی qPCR."""
+  """Extract qPCR curve features."""
   arr = np.asarray(curve, dtype=float)
   processed = preprocess_curve(arr)
 
@@ -34,7 +34,7 @@ def extract_sample_features(
   ct_value: float | None = None,
   curve_data: list[float] | None = None,
 ) -> dict[str, float]:
-  """ترکیب ویژگی‌های ورودی و استخراج‌شده."""
+  """Combine input and extracted features."""
   result = dict(features)
   if ct_value is not None:
     result["ct_value"] = ct_value

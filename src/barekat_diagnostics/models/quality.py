@@ -1,4 +1,4 @@
-"""مدل‌های فاز ۲: اعتبارسنجی بالینی، change control، drift."""
+"""Phase 2 models: clinical validation, change control, drift."""
 
 from datetime import datetime
 
@@ -9,7 +9,7 @@ from barekat_diagnostics.core.database import Base
 
 
 class ClinicalValidationProtocol(Base):
-  """پروتکل اعتبارسنجی بالینی مرتبط با سری ساخت / batch / lot."""
+  """Clinical validation protocol related to a production series / batch / lot."""
 
   __tablename__ = "clinical_validation_protocols"
 
@@ -42,7 +42,7 @@ class ClinicalValidationProtocol(Base):
 
 
 class ChangeRequest(Base):
-  """کنترل تغییر نرم‌افزار پزشکی برای مدل / پایپ‌لاین / تنظیمات."""
+  """Medical software change control for model / pipeline / settings."""
 
   __tablename__ = "change_requests"
 
@@ -69,7 +69,7 @@ class ChangeRequest(Base):
 
 
 class DriftAlert(Base):
-  """هشدار drift مدل یا افت کیفیت سیگنال."""
+  """Model drift or signal quality degradation alert."""
 
   __tablename__ = "drift_alerts"
 
@@ -91,7 +91,7 @@ class DriftAlert(Base):
 
 
 class ModelBaseline(Base):
-  """توزیع پایه ویژگی‌ها برای مانیتورینگ drift."""
+  """Base distribution of features for drift monitoring."""
 
   __tablename__ = "model_baselines"
 

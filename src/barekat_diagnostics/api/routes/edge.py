@@ -1,4 +1,4 @@
-"""API endpoints Edge و Offline-First + بسته کیوسک."""
+"""Edge and Offline-First API endpoints + kiosk bundle."""
 
 from pathlib import Path
 
@@ -34,7 +34,7 @@ def offline_analyze(
   request: OfflineAnalyzeRequest,
   user: CurrentUser = Depends(require_permission(Permission.EDGE_OPERATE)),
 ) -> DiagnosisReport:
-  """تحلیل محلی بدون نیاز به API مرکزی."""
+  """Local analysis without needing the central API."""
   _ = user
   service = OfflineDiagnosisService()
   report = service.analyze(request.sample)
@@ -59,7 +59,7 @@ def offline_pending_count(
 def offline_sync(
   user: CurrentUser = Depends(require_permission(Permission.EDGE_OPERATE)),
 ) -> OfflineSyncResponse:
-  """همگام‌سازی مقاوم با retry/backoff و حل تعارض."""
+  """Resilient synchronization with retry/backoff and conflict resolution."""
   _ = user
   result = OfflineSyncService().sync_all()
   return OfflineSyncResponse(**result)
@@ -71,7 +71,7 @@ def build_kiosk_bundle(
   enforce_sla: bool = False,
   user: CurrentUser = Depends(require_permission(Permission.ML_MANAGE)),
 ) -> EdgeBundleResponse:
-  """بسته‌بندی کیوسک با مدل ONNX قفل‌شده."""
+  """Package the kiosk with a locked ONNX model."""
   _ = user
   settings = get_settings()
   if enforce_sla:

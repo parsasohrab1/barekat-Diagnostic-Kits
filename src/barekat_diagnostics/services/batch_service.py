@@ -1,4 +1,4 @@
-"""سرویس بچ آزمایشگاهی و اعتبارسنجی کنترل مثبت/منفی."""
+"""Laboratory batch service and positive/negative control validation."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ class BatchService:
   ) -> AssayBatch:
     existing = self.db.query(AssayBatch).filter(AssayBatch.batch_id == body.batch_id).first()
     if existing:
-      raise BatchValidationError(f"بچ {body.batch_id} قبلاً ثبت شده")
+      raise BatchValidationError(f"Batch {body.batch_id} has already been registered")
 
     batch = AssayBatch(
       batch_id=body.batch_id,
@@ -80,7 +80,7 @@ class BatchService:
   ) -> AssayBatch:
     batch = self.get_batch(batch_id)
     if not batch:
-      raise BatchValidationError("بچ یافت نشد")
+      raise BatchValidationError("Batch not found")
 
     if body.positive_control_sample_id:
       batch.positive_control_sample_id = body.positive_control_sample_id
@@ -132,10 +132,10 @@ class BatchService:
   ) -> AssayBatch:
     batch = self.get_batch(batch_id)
     if not batch:
-      raise BatchValidationError("بچ یافت نشد")
+      raise BatchValidationError("Batch not found")
 
     if batch.positive_control_ct is None or batch.negative_control_ct is None:
-      raise BatchValidationError("ثبت Ct کنترل مثبت و منفی قبل از اعتبارسنجی الزامی است")
+      raise BatchValidationError("Recording the positive and negative control Ct is required before validation")
 
     pos_ok = batch.positive_control_ct <= batch.pos_control_ct_max
     neg_ok = batch.negative_control_ct >= batch.neg_control_ct_min
@@ -149,16 +149,16 @@ class BatchService:
     messages = []
     if not pos_ok:
       messages.append(
-        f"کنترل مثبت ناموفق: Ct={batch.positive_control_ct} > max={batch.pos_control_ct_max}"
+        f"Positive control failed: Ct={batch.positive_control_ct} > max={batch.pos_control_ct_max}"
       )
     if not neg_ok:
       messages.append(
-        f"کنترل منفی ناموفق: Ct={batch.negative_control_ct} < min={batch.neg_control_ct_min}"
+        f"Negative control failed: Ct={batch.negative_control_ct} < min={batch.neg_control_ct_min}"
       )
 
     if batch.controls_validated:
       batch.status = "validated"
-      batch.validation_message = "کنترل مثبت و منفی پذیرفته شد"
+      batch.validation_message = "Positive and negative controls accepted"
     else:
       batch.status = "failed"
       batch.validation_message = "; ".join(messages)
@@ -187,10 +187,10 @@ class BatchService:
       return None
     batch = self.get_batch(batch_id)
     if not batch:
-      raise BatchValidationError(f"بچ {batch_id} یافت نشد")
+      raise BatchValidationError(f"Batch {batch_id} not found")
     if not batch.controls_validated:
       raise BatchValidationError(
-        f"بچ {batch_id} هنوز کنترل مثبت/منفی معتبر ندارد — تحلیل نمونه‌های بیمار مجاز نیست"
+        f"Batch {batch_id} does not yet have valid positive/negative controls — analysis of patient samples is not allowed"
       )
     return batch
 

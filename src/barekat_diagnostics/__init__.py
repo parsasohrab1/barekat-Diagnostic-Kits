@@ -1,3 +1,3 @@
-"""barekat-Diagnostic-Kits — پلتفرم تحلیل کیت‌های تشخیصی."""
+"""barekat-Diagnostic-Kits — diagnostic kit analysis platform."""
 
 __version__ = "0.1.0"

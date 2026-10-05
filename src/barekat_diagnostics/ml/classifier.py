@@ -1,4 +1,4 @@
-"""آموزش و ارزیابی مدل‌های طبقه‌بندی تشخیصی."""
+"""Training and evaluation of diagnostic classification models."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def train_classifier(
   version: str = "v1",
   promote: bool = False,
 ) -> tuple[object, TrainingMetrics]:
-  """آموزش مدل، ارزیابی IVD و ثبت در registry (پیش‌فرض بدون promote)."""
+  """Train the model, IVD evaluation and registry recording (no promote by default)."""
   settings = settings or get_settings()
   X, y, all_features = prepare_features(df)
 
@@ -101,7 +101,7 @@ def train_classifier(
 
 
 class DiagnosticPredictor:
-  """پیش‌بینی با پشتیبانی از registry و A/B test."""
+  """Prediction with registry and A/B test support."""
 
   def __init__(self, settings: Settings | None = None):
     self.settings = settings or get_settings()
@@ -121,7 +121,7 @@ class DiagnosticPredictor:
       model_file = self.registry.model_file(version, self.settings)
       model_path = Path(self.settings.model_path) / model_file
       if not model_path.exists():
-        raise FileNotFoundError(f"مدل یافت نشد: {model_path}")
+        raise FileNotFoundError(f"Model not found: {model_path}")
       self._artifacts[version] = joblib.load(model_path)
     return self._artifacts[version]
 

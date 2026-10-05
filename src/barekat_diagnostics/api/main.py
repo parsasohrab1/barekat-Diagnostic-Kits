@@ -53,7 +53,7 @@ def create_app() -> FastAPI:
 
   app = FastAPI(
     title="barekat-Diagnostic-Kits",
-    description="پلتفرم هوشمند تحلیل داده‌های کیت‌های تشخیصی",
+    description="Intelligent platform for analyzing diagnostic kit data",
     version=__version__,
     lifespan=lifespan,
     docs_url="/docs" if settings.debug else None,

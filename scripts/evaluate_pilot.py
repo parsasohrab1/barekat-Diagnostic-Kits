@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ارزیابی Se/Sp با فاصله اطمینان روی دادهٔ پایلوت."""
+"""Evaluate Se/Sp with a confidence interval on pilot data."""
 
 from __future__ import annotations
 

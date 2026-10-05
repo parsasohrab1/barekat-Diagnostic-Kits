@@ -1,4 +1,4 @@
-"""نسخه‌بندی سخت‌گیرانه مدل، قفل production، A/B و rollback."""
+"""Strict model versioning, production lock, A/B and rollback."""
 
 from __future__ import annotations
 
@@ -102,7 +102,7 @@ class ModelRegistry:
     if not routing_key:
       return self.production_version
     if self.production_locked and self.ab_test.enabled:
-      # قفل production اجازه A/B نمی‌دهد مگر challenger هم validated باشد
+      # The production lock does not allow A/B unless the challenger is also validated
       challenger = self.versions.get(self.ab_test.challenger_version)
       if not challenger or challenger.status not in {"validated", "staging", "production"}:
         return self.production_version
@@ -131,17 +131,17 @@ class ModelRegistry:
     allow_overwrite: bool = False,
     settings: Settings | None = None,
   ) -> tuple[bool, str]:
-    """ثبت نسخه جدید — بازنویسی نسخه موجود ممنوع است مگر allow_overwrite."""
+    """Register a new version — overwriting an existing version is forbidden unless allow_overwrite."""
     settings = settings or get_settings()
 
     if version in self.versions and not allow_overwrite:
       existing = self.versions[version]
       if existing.status in {"production", "locked"} or existing.locked:
         raise RegistryError(
-          f"نسخه {version} قفل/production است و قابل بازنویسی نیست — از شناسه نسخه جدید استفاده کنید"
+          f"Version {version} is locked/production and cannot be overwritten — use a new version identifier"
         )
       raise RegistryError(
-        f"نسخه {version} از قبل ثبت شده — versioning سخت‌گیرانه اجازه overwrite نمی‌دهد"
+        f"Version {version} is already registered — strict versioning does not allow overwrite"
       )
 
     if not file_checksum and file:
@@ -189,17 +189,17 @@ class ModelRegistry:
     force: bool = False,
     settings: Settings | None = None,
   ) -> str:
-    """ارتقا صریح به production — نیازمند قفل‌نبودن یا force از change control."""
+    """Explicit promotion to production — requires being unlocked or force from change control."""
     settings = settings or get_settings()
     if version not in self.versions:
-      raise RegistryError(f"نسخه {version} یافت نشد")
+      raise RegistryError(f"Version {version} not found")
     if self.production_locked and not force:
-      raise RegistryError("production قفل است — ابتدا unlock یا change request تأییدشده لازم است")
+      raise RegistryError("Production is locked — unlock first or an approved change request is required")
 
     info = self.versions[version]
     if self.production_version in self.versions and not force:
       if not _passes_quality_gate(info.metrics, self.versions[self.production_version].metrics, settings):
-        raise RegistryError("ارتقا رد شد — معیارهای کیفیت زیر آستانه production")
+        raise RegistryError("Promotion rejected — quality criteria below the production threshold")
 
     if validation_protocol_id:
       info.validation_protocol_id = validation_protocol_id
@@ -212,7 +212,7 @@ class ModelRegistry:
 
   def lock_production(self) -> None:
     if self.production_version not in self.versions:
-      raise RegistryError("نسخه production برای قفل وجود ندارد")
+      raise RegistryError("There is no production version to lock")
     self.production_locked = True
     prod = self.versions[self.production_version]
     prod.locked = True
@@ -231,18 +231,18 @@ class ModelRegistry:
 
   def mark_validated(self, version: str, protocol_id: str) -> None:
     if version not in self.versions:
-      raise RegistryError(f"نسخه {version} یافت نشد")
+      raise RegistryError(f"Version {version} not found")
     info = self.versions[version]
     if info.status == "production" and info.locked:
-      raise RegistryError("نسخه قفل‌شده قابل تغییر وضعیت نیست")
+      raise RegistryError("A locked version cannot have its status changed")
     info.status = "validated" if info.status != "production" else info.status
     info.validation_protocol_id = protocol_id
     self.save()
 
   def force_rollback(self, to_version: str) -> str:
-    """Rollback دستی به نسخه مشخص (ادمین/change control)."""
+    """Manual rollback to a specific version (admin/change control)."""
     if to_version not in self.versions:
-      raise RegistryError(f"نسخه هدف {to_version} یافت نشد")
+      raise RegistryError(f"Target version {to_version} not found")
     prev = self.production_version
     if prev in self.versions:
       self.versions[prev].status = "rolled_back"

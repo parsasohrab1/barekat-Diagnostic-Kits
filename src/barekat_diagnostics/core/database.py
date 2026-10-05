@@ -1,4 +1,4 @@
-"""اتصال به پایگاه داده."""
+"""Database connection."""
 
 from collections.abc import Generator
 

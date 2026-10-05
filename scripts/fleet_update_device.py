@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""بروزرسانی امن مدل روی دستگاه edge از manifest ناوگان."""
+"""Secure model update on an edge device from the fleet manifest."""
 
 from __future__ import annotations
 

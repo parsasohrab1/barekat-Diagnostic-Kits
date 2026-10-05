@@ -1,4 +1,4 @@
-"""آداپتور کیت qPCR."""
+"""qPCR kit adapter."""
 
 from typing import Any
 
@@ -45,7 +45,7 @@ class QpcrKitAdapter(KitAdapter):
     if quality is not None and quality < settings.qc_min_quality_score:
       flags.append(QCFlag(
         code="LOW_QUALITY",
-        message=f"امتیاز کیفیت پایین: {quality:.2f}",
+        message=f"Low quality score: {quality:.2f}",
         severity=QCSeverity.CRITICAL,
       ))
 
@@ -53,7 +53,7 @@ class QpcrKitAdapter(KitAdapter):
     if snr is not None and snr < settings.qc_min_signal_to_noise:
       flags.append(QCFlag(
         code="LOW_SNR",
-        message=f"نسبت سیگنال به نویز پایین: {snr:.2f}",
+        message=f"Low signal-to-noise ratio: {snr:.2f}",
         severity=QCSeverity.WARNING,
       ))
 
@@ -61,14 +61,14 @@ class QpcrKitAdapter(KitAdapter):
     if amp_eff is not None and amp_eff < settings.qc_min_amplification_efficiency:
       flags.append(QCFlag(
         code="LOW_AMP_EFF",
-        message=f"بازدهی تکثیر پایین: {amp_eff:.2f}",
+        message=f"Low amplification efficiency: {amp_eff:.2f}",
         severity=QCSeverity.WARNING,
       ))
 
     if raw_data.get("calibration_error"):
       flags.append(QCFlag(
         code="CALIBRATION_ERROR",
-        message="خطای کالیبراسیون شناسایی شد",
+        message="Calibration error detected",
         severity=QCSeverity.CRITICAL,
       ))
 
@@ -76,7 +76,7 @@ class QpcrKitAdapter(KitAdapter):
     if ct is not None and (ct < 10 or ct > 45):
       flags.append(QCFlag(
         code="ABNORMAL_CT",
-        message=f"مقدار Ct غیرعادی: {ct:.1f}",
+        message=f"Abnormal Ct value: {ct:.1f}",
         severity=QCSeverity.WARNING,
       ))
 

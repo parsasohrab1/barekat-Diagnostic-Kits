@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ساخت بسته کیوسک با مدل ONNX قفل‌شده."""
+"""Build a kiosk bundle with a locked ONNX model."""
 
 from __future__ import annotations
 

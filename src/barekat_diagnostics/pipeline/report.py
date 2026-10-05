@@ -1,4 +1,4 @@
-"""ساخت گزارش تشخیص ساختاریافته."""
+"""Build a structured diagnosis report."""
 
 from datetime import datetime, timezone
 from typing import Any, Literal
@@ -24,7 +24,7 @@ def determine_recommendation(
   if result == "inconclusive":
     return "retest"
   warning_count = sum(1 for f in qc.flags if f.severity == QCSeverity.WARNING)
-  # الگوی مشکوک چندپرچمی → پیشنهاد reassessment بالینی
+  # Suspicious multi-flag pattern → clinical reassessment suggestion
   if warning_count >= 2 and confidence < 0.85:
     return "reassess"
   if warning_count >= 1 and confidence < 0.75:

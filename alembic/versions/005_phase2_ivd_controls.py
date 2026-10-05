@@ -12,7 +12,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-  # نقش‌ها: technician→operator، pathologist→supervisor
+  # Roles: technician→operator, pathologist→supervisor
   op.execute("UPDATE users SET role = 'operator' WHERE role = 'technician'")
   op.execute("UPDATE users SET role = 'supervisor' WHERE role = 'pathologist'")
 

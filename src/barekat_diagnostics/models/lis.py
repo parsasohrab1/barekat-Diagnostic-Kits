@@ -1,4 +1,4 @@
-"""مدل سفارش LIS و همگام‌سازی EHR."""
+"""LIS order model and EHR synchronization."""
 
 from datetime import datetime, timezone
 
@@ -9,7 +9,7 @@ from barekat_diagnostics.core.database import Base
 
 
 class LabOrder(Base):
-  """سفارش دریافتی از LIS (ServiceRequest)."""
+  """Order received from LIS (ServiceRequest)."""
 
   __tablename__ = "lab_orders"
 
@@ -27,7 +27,7 @@ class LabOrder(Base):
 
 
 class FhirExport(Base):
-  """لاگ export گزارش FHIR DiagnosticReport به LIS/EHR."""
+  """FHIR DiagnosticReport export log to LIS/EHR."""
 
   __tablename__ = "fhir_exports"
 

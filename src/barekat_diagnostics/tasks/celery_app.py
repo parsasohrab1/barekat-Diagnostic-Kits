@@ -1,4 +1,4 @@
-"""Celery application برای پردازش ناهمزمان."""
+"""Celery application for asynchronous processing."""
 
 from celery import Celery
 

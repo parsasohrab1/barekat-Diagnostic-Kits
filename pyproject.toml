@@ -1,7 +1,7 @@
 [project]
 name = "barekat-diagnostics"
 version = "0.1.0"
-description = "پلتفرم هوشمند تحلیل داده‌های کیت‌های تشخیصی (qPCR، ELISA، طیف‌سنجی)"
+description = "Intelligent platform for analyzing diagnostic kit data (qPCR, ELISA, spectroscopy)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

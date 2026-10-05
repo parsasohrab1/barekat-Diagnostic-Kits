@@ -1,8 +1,8 @@
 # barekat-Diagnostic-Kits
 
-هدف: توسعه یک نرم‌افزار هوشمند برای تحلیل داده‌های خام کیت‌های تشخیصی (مانند داده‌های qPCR، توالی‌یابی یا طیف‌سنجی) برای تشخیص دقیق و سریع بیماری.
+Goal: develop intelligent software for analyzing raw diagnostic kit data (such as qPCR, sequencing or spectroscopy data) for accurate and rapid disease diagnosis.
 
-## معماری زیرساخت
+## Infrastructure Architecture
 
 ```
 ┌──────────────────┐     ┌──────────────┐     ┌─────────────────┐
@@ -18,32 +18,32 @@
              └──────────┘  └──────────┘  └─────────────┘
 ```
 
-### سرویس‌ها
+### Services
 
-| سرویس | پورت | نقش |
+| Service | Port | Role |
 |--------|------|-----|
-| PostgreSQL | 5432 | ذخیره نمونه‌ها و نتایج تشخیص |
-| Redis | 6379 | صف Celery |
-| MinIO | 9000/9001 | ذخیره منحنی‌های خام |
-| API | 8000 | REST API تشخیص |
+| PostgreSQL | 5432 | Stores samples and diagnosis results |
+| Redis | 6379 | Celery queue |
+| MinIO | 9000/9001 | Stores raw curves |
+| API | 8000 | Diagnosis REST API |
 
-## ورودی‌ها
+## Inputs
 
-داده‌های خام حسگرها، اطلاعات مربوط به کالیبراسیون کیت، و شناسه بیمار.
+Raw sensor data, kit calibration information, and patient ID.
 
-## پردازش
+## Processing
 
-پیش‌پردازش (حذف نویز، نرمال‌سازی)، استخراج ویژگی‌های کلیدی (مانند Ct value در qPCR)، و استفاده از یک مدل طبقه‌بندی آموزش‌دیده (مانند SVM، Random Forest یا شبکه عصبی) برای تصمیم‌گیری نهایی (مثبت/منفی).
+Preprocessing (noise removal, normalization), extraction of key features (such as the Ct value in qPCR), and use of a trained classification model (such as SVM, Random Forest or a neural network) for the final decision (positive/negative).
 
-## خروجی‌ها
+## Outputs
 
-گزارش تشخیص، سطح اطمینان مدل، و هشدار در صورت وجود داده‌های غیرقابل اعتماد (کنترل کیفیت خودکار).
+Diagnosis report, model confidence level, and an alert if unreliable data is present (automatic quality control).
 
-## محدودیت‌های کلیدی
+## Key Constraints
 
-دقت و ویژگی (Sensitivity/Specificity) بالا، زمان پردازش کوتاه برای استفاده بالینی، توانایی کار بر روی دستگاه‌های با توان پردازشی محدود، و مقاوم بودن در برابر نویز و تغییرات آزمایشگاهی.
+High accuracy and specificity (Sensitivity/Specificity), short processing time for clinical use, ability to run on devices with limited processing power, and robustness against noise and laboratory variations.
 
-## راه‌اندازی سریع
+## Quick Start
 
 ```bash
 cp .env.example .env
@@ -55,7 +55,7 @@ python scripts/train_model.py
 uvicorn barekat_diagnostics.api.main:app --reload
 ```
 
-یا با Makefile:
+Or with the Makefile:
 
 ```bash
 make setup
@@ -66,76 +66,76 @@ make train
 make api
 ```
 
-مستندات زیرساخت: [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)
+Infrastructure documentation: [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)
 
 ## API
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/health` | بررسی سلامت |
-| POST | `/api/v1/import/qpcr` | واردسازی CSV/RDML دستگاه qPCR |
-| POST | `/api/v1/batches/` | ایجاد بچ آزمایشگاهی |
-| POST | `/api/v1/batches/{id}/controls` | ثبت کنترل مثبت/منفی |
-| POST | `/api/v1/batches/{id}/validate` | اعتبارسنجی اجباری کنترل‌ها |
-| POST | `/api/v1/diagnosis/analyze` | تحلیل نمونه |
-| GET | `/api/v1/diagnosis/jobs` | لیست Jobها |
-| POST | `/api/v1/diagnosis/reports/{id}/approve` | تأیید نتیجه توسط کاربر |
-| GET | `/api/v1/audit/` | لاگ حسابرسی |
-| GET | `/api/v1/dashboard/summary` | خلاصه داشبورد اپراتور |
-| POST | `/api/v1/ml/evaluate-pilot` | Se/Sp + CI روی دادهٔ پایلوت |
-| GET | `/dashboard` | UI اپراتور آزمایشگاه |
+| GET | `/api/v1/health` | Health check |
+| POST | `/api/v1/import/qpcr` | Import CSV/RDML from a qPCR instrument |
+| POST | `/api/v1/batches/` | Create a laboratory batch |
+| POST | `/api/v1/batches/{id}/controls` | Record positive/negative controls |
+| POST | `/api/v1/batches/{id}/validate` | Mandatory validation of controls |
+| POST | `/api/v1/diagnosis/analyze` | Sample analysis |
+| GET | `/api/v1/diagnosis/jobs` | List jobs |
+| POST | `/api/v1/diagnosis/reports/{id}/approve` | Result approval by a user |
+| GET | `/api/v1/audit/` | Audit log |
+| GET | `/api/v1/dashboard/summary` | Operator dashboard summary |
+| POST | `/api/v1/ml/evaluate-pilot` | Se/Sp + CI on pilot data |
+| GET | `/dashboard` | Laboratory operator UI |
 
-## فاز ۳ — Edge / ناوگان / چندمرکزی
+## Phase 3 — Edge / Fleet / Multi-center
 
-- بسته کیوسک ONNX قفل‌شده: `python scripts/build_edge_bundle.py --version v1`
-- Sync مقاوم (retry/backoff + conflict): `POST /edge/offline/sync`
-- ناوگان مدل: `/api/v1/fleet/releases` · `/manifest/{device_id}` · `scripts/fleet_update_device.py`
+- Locked ONNX kiosk bundle: `python scripts/build_edge_bundle.py --version v1`
+- Resilient sync (retry/backoff + conflict): `POST /edge/offline/sync`
+- Model fleet: `/api/v1/fleet/releases` · `/manifest/{device_id}` · `scripts/fleet_update_device.py`
 - Multi-tenant: `/api/v1/tenants/` · `/centers/{id}/aggregate`
-- Latency SLA روی CPU ضعیف: `EDGE_LATENCY_SLA_MS=100` + ORT single-thread
+- Latency SLA on a weak CPU: `EDGE_LATENCY_SLA_MS=100` + ORT single-thread
 
 ```bash
 alembic upgrade head
 pip install -e ".[edge]"
 ```
 
-## فاز ۴ — پشتیبانی تصمیم پیشرفته
+## Phase 4 — Advanced Decision Support
 
-- پنل چندبیماری/مارکر: `POST /api/v1/panels/` · `POST /api/v1/panels/analyze` (پیش‌فرض `RESP-V1`)
-- توضیح‌پذیری بالینی برای پزشک/بایولوژیست در گزارش تشخیص (`clinical_explanation`)
-- پرونده چندکیتی (qPCR + ELISA): `POST /api/v1/cases/` · `/assays` · `/fuse`
-- پیشنهاد reassessment روی QC مشکوک: `GET /api/v1/reassessments/` · `POST .../accept`
-- یادگیری نظارت‌شده (HITL): `POST /api/v1/hitl/feedback` · `/export` · `/retrain`
+- Multi-disease/marker panel: `POST /api/v1/panels/` · `POST /api/v1/panels/analyze` (default `RESP-V1`)
+- Clinical explainability for the physician/biologist in the diagnosis report (`clinical_explanation`)
+- Multi-kit case (qPCR + ELISA): `POST /api/v1/cases/` · `/assays` · `/fuse`
+- Reassessment suggestion on suspicious QC: `GET /api/v1/reassessments/` · `POST .../accept`
+- Supervised learning (HITL): `POST /api/v1/hitl/feedback` · `/export` · `/retrain`
 
 ```bash
-alembic upgrade head   # شامل migration 007
+alembic upgrade head   # includes migration 007
 pytest tests/test_phase4_advanced_dss.py -q
 ```
 
 
-## ساختار پروژه
+## Project Structure
 
 ```
-├── src/barekat_diagnostics/   # کد اصلی
+├── src/barekat_diagnostics/   # main code
 │   ├── api/                     # FastAPI
-│   ├── pipeline/                # QC، پیش‌پردازش، استخراج ویژگی
-│   ├── ml/                      # مدل‌های ML
-│   └── data/                    # تولید داده سنتتیک
-├── scripts/                     # اسکریپت‌های کمکی
-├── data/                        # داده و مدل‌ها
-├── tests/                       # تست‌ها
-└── docker-compose.yml           # زیرساخت Docker
+│   ├── pipeline/                # QC, preprocessing, feature extraction
+│   ├── ml/                      # ML models
+│   └── data/                    # synthetic data generation
+├── scripts/                     # helper scripts
+├── data/                        # data and models
+├── tests/                       # tests
+└── docker-compose.yml           # Docker infrastructure
 ```
 
-## فرمول تولید داده‌های سنتتیک
+## Synthetic Data Generation Formula
 
-تولید داده برای کیت‌های تشخیص شامل شبیه‌سازی سیگنال‌های خام و نتایج نهایی است.
+Data generation for diagnostic kits includes simulation of raw signals and final results.
 
-### فرمول پیشنهادی برای داده‌های qPCR
+### Suggested Formula for qPCR Data
 
-1. **مدل‌سازی سیگنال پایه**: برای هر نمونه، یک منحنی رشد نمایی (Sigmoid) با پارامترهای مختلف (شیب، نقطه عطف) تولید می‌شود.
-2. **افزودن نویز و خطا**: نویز پس‌زمینه (گوسی)، نوسانات فاز نمایی، و خطاهای سیستماتیک کالیبراسیون.
-3. **تولید داده‌های بالینی**: به هر نمونه وضعیت واقعی (مثبت/منفی) اختصاص داده می‌شود.
-4. **تولید مجموعه داده نهایی**: پایگاه داده ویژگی‌های استخراج‌شده (Ct value) با برچسب واقعی.
+1. **Baseline signal modeling**: for each sample, an exponential growth curve (Sigmoid) with different parameters (slope, inflection point) is generated.
+2. **Adding noise and error**: background noise (Gaussian), exponential phase fluctuations, and systematic calibration errors.
+3. **Generating clinical data**: each sample is assigned a true status (positive/negative).
+4. **Generating the final dataset**: a database of extracted features (Ct value) with true labels.
 
 ```bash
 python scripts/generate_data.py --samples 800

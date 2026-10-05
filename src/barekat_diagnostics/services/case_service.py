@@ -1,4 +1,4 @@
-"""پرونده چندکیتی — ترکیب qPCR + ELISA و سیاست همخوانی."""
+"""Multi-kit case — combining qPCR + ELISA and concordance policy."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def fuse_kit_results(
   assays: list[dict],
   policy: str = "concordance",
 ) -> tuple[str, float, str]:
-  """ترکیب نتایج چندکیتی → (consensus, confidence, rationale)."""
+  """Combine multi-kit results → (consensus, confidence, rationale)."""
   usable = [a for a in assays if a.get("result") in {"positive", "negative", "inconclusive"}]
   if not usable:
     return "inconclusive", 0.0, "No assay results available"
@@ -94,7 +94,7 @@ class CaseService:
   def create_case(self, body: CaseCreate, **actor) -> ClinicalCase:
     case_id = body.case_id or f"CASE-{uuid.uuid4().hex[:10].upper()}"
     if self.db.query(ClinicalCase).filter(ClinicalCase.case_id == case_id).first():
-      raise CaseError(f"پرونده تکراری: {case_id}")
+      raise CaseError(f"Duplicate case: {case_id}")
     row = ClinicalCase(
       case_id=case_id,
       patient_id=body.patient_id,
@@ -128,7 +128,7 @@ class CaseService:
   ) -> CaseAssay:
     case = self.get(case_id)
     if not case:
-      raise CaseError("پرونده یافت نشد")
+      raise CaseError("Case not found")
 
     sample_id = body.sample_id
     report_id = body.report_id
@@ -152,7 +152,7 @@ class CaseService:
         confidence = report.confidence
 
     if not sample_id:
-      raise CaseError("sample_id یا sample لازم است")
+      raise CaseError("sample_id or sample is required")
 
     assay = CaseAssay(
       case_id=case_id,
@@ -180,10 +180,10 @@ class CaseService:
   def fuse(self, case_id: str, **actor) -> CaseFuseResponse:
     case = self.get(case_id)
     if not case:
-      raise CaseError("پرونده یافت نشد")
+      raise CaseError("Case not found")
     assays = self.db.query(CaseAssay).filter(CaseAssay.case_id == case_id).all()
     if len(assays) < 1:
-      raise CaseError("حداقل یک assay لازم است")
+      raise CaseError("At least one assay is required")
 
     payload = [
       {

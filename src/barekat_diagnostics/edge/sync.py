@@ -1,4 +1,4 @@
-"""Sync مقاوم در برابر قطعی شبکه با retry/backoff و حل تعارض."""
+"""Sync resilient to network outages with retry/backoff and conflict resolution."""
 
 from __future__ import annotations
 

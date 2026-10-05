@@ -1,4 +1,4 @@
-"""تست‌های واردسازی CSV/RDML و فاز ۱ کلینیکال-لاب."""
+"""Tests for CSV/RDML import and clinical-lab phase 1."""
 
 from __future__ import annotations
 

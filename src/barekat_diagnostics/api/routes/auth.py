@@ -1,4 +1,4 @@
-"""API احراز هویت."""
+"""Authentication API."""
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
@@ -21,7 +21,7 @@ def login(
 ) -> AuthLoginResponse:
   result = AuthService(db).login(form.username, form.password)
   if not result:
-    raise HTTPException(status_code=401, detail="ایمیل یا رمز عبور نادرست است")
+    raise HTTPException(status_code=401, detail="Incorrect email or password")
   AuditTrailService(db).log(
     "auth.login",
     actor_email=result["email"],

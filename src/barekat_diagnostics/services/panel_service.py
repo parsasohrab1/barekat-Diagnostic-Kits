@@ -1,4 +1,4 @@
-"""سرویس پنل چندمارکری / چندبیماری."""
+"""Multi-marker / multi-disease panel service."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from barekat_diagnostics.schemas import (
 from barekat_diagnostics.services.audit_trail import AuditTrailService
 
 
-# پنل پیش‌فرض تنفسی (چندبیماری)
+# Default respiratory panel (multi-disease)
 DEFAULT_RESPIRATORY_PANEL = [
   {"marker_id": "SARS_COV2", "name": "SARS-CoV-2", "kit_type": "qpcr", "disease_code": "COVID19", "cutoff": 35.0, "unit": "Ct", "field": "ct_sars"},
   {"marker_id": "FLU_A", "name": "Influenza A", "kit_type": "qpcr", "disease_code": "FLUA", "cutoff": 35.0, "unit": "Ct", "field": "ct_flu_a"},
@@ -37,11 +37,11 @@ class PanelError(Exception):
 
 
 def _call_marker(value: float | None, cutoff: float, kit_type: str) -> tuple[str, float]:
-  """تصمیم مثبت/منفی/مرزی برای یک مارکر."""
+  """Positive/negative/borderline decision for one marker."""
   if value is None:
     return "inconclusive", 0.0
   if kit_type == "qpcr":
-    # Ct پایین‌تر = مثبت
+    # Lower Ct = positive
     if value <= cutoff - 2:
       return "positive", min(0.99, 0.7 + (cutoff - value) * 0.03)
     if value <= cutoff:
@@ -49,7 +49,7 @@ def _call_marker(value: float | None, cutoff: float, kit_type: str) -> tuple[str
     if value >= cutoff + 3:
       return "negative", min(0.99, 0.7 + (value - cutoff) * 0.02)
     return "negative", 0.6
-  # ELISA / spectroscopy: مقدار بالاتر از cutoff = مثبت
+  # ELISA / spectroscopy: value above the cutoff = positive
   if value >= cutoff * 1.2:
     return "positive", min(0.99, 0.7 + (value - cutoff) * 0.1)
   if value >= cutoff:
@@ -79,9 +79,9 @@ class PanelService:
 
   def create_panel(self, body: MarkerPanelCreate, **actor) -> MarkerPanel:
     if self.db.query(MarkerPanel).filter(MarkerPanel.panel_id == body.panel_id).first():
-      raise PanelError(f"پنل تکراری: {body.panel_id}")
+      raise PanelError(f"Duplicate panel: {body.panel_id}")
     if not body.markers:
-      raise PanelError("حداقل یک مارکر لازم است")
+      raise PanelError("At least one marker is required")
     row = MarkerPanel(
       panel_id=body.panel_id,
       name=body.name,
@@ -113,11 +113,11 @@ class PanelService:
       self.ensure_defaults()
       panel = self.get_panel(body.panel_id)
     if not panel:
-      raise PanelError(f"پنل یافت نشد: {body.panel_id}")
+      raise PanelError(f"Panel not found: {body.panel_id}")
 
     markers = [MarkerDefinition.model_validate(m) for m in json.loads(panel.markers_json)]
     values = body.marker_values or {}
-    # fallback از SampleInput اگر field روی sample باشد
+    # fallback from SampleInput if the field is on the sample
     sample = body.sample
     run_id = f"PRUN-{uuid.uuid4().hex[:10].upper()}"
     results: list[MarkerResultSchema] = []
@@ -127,7 +127,7 @@ class PanelService:
       if raw_val is None and marker.field:
         raw_val = values.get(marker.field)
       if raw_val is None and sample:
-        # جستجو در features یا attribute
+        # Search in features or attribute
         if sample.features and marker.field in sample.features:
           raw_val = sample.features[marker.field]
         elif marker.field == "ct_value" or marker.kit_type == "qpcr":

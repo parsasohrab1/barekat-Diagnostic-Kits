@@ -1,4 +1,4 @@
-"""API پروتکل اعتبارسنجی بالینی."""
+"""Clinical validation protocol API."""
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -54,7 +54,7 @@ def get_protocol(
   service = ClinicalValidationService(db)
   row = service.get(protocol_id)
   if not row:
-    raise HTTPException(status_code=404, detail="پروتکل یافت نشد")
+    raise HTTPException(status_code=404, detail="Protocol not found")
   return service.to_response(row)
 
 

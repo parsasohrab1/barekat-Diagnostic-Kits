@@ -1,4 +1,4 @@
-"""تولید داده‌های سنتتیک واقع‌گرایانه برای کیت‌های تشخیصی."""
+"""Generate realistic synthetic data for diagnostic kits."""
 
 import numpy as np
 import pandas as pd
@@ -28,9 +28,9 @@ def generate_diagnostic_kit_data(
   seed: int = 42,
 ) -> pd.DataFrame:
   """
-  تولید داده سنتتیک با batch effect، drift کالیبراسیون و نمونه‌های borderline.
+  Generate synthetic data with batch effect, calibration drift and borderline samples.
 
-  realistic=True: شبیه‌سازی تفاوت دستگاه‌ها، lot و نمونه‌های نزدیک cutoff
+  realistic=True: simulate differences between devices, lots and samples close to the cutoff
   """
   rng = np.random.default_rng(seed)
 

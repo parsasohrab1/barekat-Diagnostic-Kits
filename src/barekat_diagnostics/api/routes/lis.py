@@ -1,4 +1,4 @@
-"""API یکپارچگی LIS / HL7 / FHIR."""
+"""LIS / HL7 / FHIR integration API."""
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import PlainTextResponse

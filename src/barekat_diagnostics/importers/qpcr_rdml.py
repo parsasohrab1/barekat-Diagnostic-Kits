@@ -1,4 +1,4 @@
-"""واردکننده فایل RDML (XML) دستگاه‌های qPCR."""
+"""Importer for qPCR instrument RDML (XML) files."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 from barekat_diagnostics.importers.qpcr_csv import _infer_role
 from barekat_diagnostics.schemas import ImportedQpcrWell, SampleInput
 
-# namespaceهای رایج RDML
+# Common RDML namespaces
 _NS_CANDIDATES = (
   "http://www.rdml.org",
   "http://www.rdml.org/version1",
@@ -52,7 +52,7 @@ def _sample_map(root: ET.Element) -> dict[str, dict[str, str]]:
   for el in root.iter():
     if _local(el.tag) != "sample":
       continue
-    # ارجاع داخل <react> معمولاً بدون فرزند است — تعریف کامل را بازنویسی نکن
+    # A reference inside <react> usually has no children — do not rewrite the full definition
     children = list(el)
     if not children:
       continue
@@ -117,12 +117,12 @@ def parse_qpcr_rdml(
   calibration_lot: str | None = None,
   default_kit_type: str = "qpcr",
 ) -> list[ImportedQpcrWell]:
-  """پارس فایل RDML به لیست چاهک‌ها."""
+  """Parse an RDML file into a list of wells."""
   text = content.decode("utf-8-sig") if isinstance(content, bytes) else content
   try:
     root = ET.fromstring(text)
   except ET.ParseError as exc:
-    raise ValueError(f"فایل RDML نامعتبر است: {exc}") from exc
+    raise ValueError(f"Invalid RDML file: {exc}") from exc
 
   sample_meta = _sample_map(root)
   wells: list[ImportedQpcrWell] = []
@@ -133,7 +133,7 @@ def parse_qpcr_rdml(
       continue
     index += 1
     sample_id = None
-    # sample id اغلب به‌صورت attribute یا زیر‌المان sample
+    # sample id is often an attribute or under the sample sub-element
     for child in react:
       if _local(child.tag) == "sample":
         sample_id = _attr(child, "id") or _text(child)
@@ -178,7 +178,7 @@ def parse_qpcr_rdml(
     )
 
   if not wells:
-    # fallback: اگر react نبود، از sampleها بساز
+    # fallback: if there is no react, build from the samples
     for sid, meta in sample_meta.items():
       role = _infer_role(meta.get("type"), sid)
       wells.append(
@@ -196,7 +196,7 @@ def parse_qpcr_rdml(
       )
 
   if not wells:
-    raise ValueError("هیچ واکنش (react) یا نمونه‌ای در RDML یافت نشد")
+    raise ValueError("No reaction (react) or sample was found in the RDML")
   return wells
 
 

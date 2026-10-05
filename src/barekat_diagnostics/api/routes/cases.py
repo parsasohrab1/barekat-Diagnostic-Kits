@@ -1,4 +1,4 @@
-"""API پرونده بالینی چندکیتی."""
+"""Multi-kit clinical case API."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -60,7 +60,7 @@ def get_case(
   service = CaseService(db)
   row = service.get(case_id)
   if not row:
-    raise HTTPException(status_code=404, detail="پرونده یافت نشد")
+    raise HTTPException(status_code=404, detail="Case not found")
   return service.to_response(row)
 
 

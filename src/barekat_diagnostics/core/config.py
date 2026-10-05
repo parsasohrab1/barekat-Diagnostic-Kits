@@ -1,4 +1,4 @@
-"""تنظیمات مرکزی پلتفرم."""
+"""Central platform settings."""
 
 from functools import lru_cache
 from typing import Literal

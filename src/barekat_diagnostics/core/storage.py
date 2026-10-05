@@ -1,4 +1,4 @@
-"""سرویس ذخیره‌سازی فایل‌های خام در MinIO/S3."""
+"""Raw file storage service on MinIO/S3."""
 
 import io
 import json
@@ -11,7 +11,7 @@ from barekat_diagnostics.core.config import get_settings
 
 
 class StorageService:
-  """مدیریت منحنی‌ها و فایل‌های کالیبراسیون."""
+  """Manage curves and calibration files."""
 
   def __init__(self) -> None:
     settings = get_settings()

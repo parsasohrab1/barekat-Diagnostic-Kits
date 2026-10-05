@@ -1,6 +1,6 @@
 """Role-Based Access Control — operator / supervisor / admin.
 
-Aliases برای سازگاری با نقش‌های قدیمی: technician→operator، pathologist→supervisor.
+Aliases for compatibility with legacy roles: technician→operator, pathologist→supervisor.
 """
 
 from enum import Enum
@@ -12,7 +12,7 @@ class Role(str, Enum):
   ADMIN = "admin"
 
 
-# نام‌های قدیمی که هنوز در توکن/DB ممکن است باشند
+# Legacy names that may still exist in the token/DB
 _ROLE_ALIASES: dict[str, Role] = {
   "technician": Role.OPERATOR,
   "pathologist": Role.SUPERVISOR,
@@ -92,8 +92,8 @@ def is_valid_role(role: str) -> bool:
 
 
 def canonical_role(role: str) -> str:
-  """برگرداندن نام canonical برای ذخیره در DB."""
+  """Return the canonical name for storage in the DB."""
   resolved = normalize_role(role)
   if resolved is None:
-    raise ValueError(f"نقش نامعتبر: {role}")
+    raise ValueError(f"Invalid role: {role}")
   return resolved.value

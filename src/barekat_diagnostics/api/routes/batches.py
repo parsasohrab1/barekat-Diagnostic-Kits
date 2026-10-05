@@ -1,4 +1,4 @@
-"""API بچ آزمایشگاهی و کنترل مثبت/منفی."""
+"""Laboratory batch and positive/negative control API."""
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -50,7 +50,7 @@ def get_batch(
   service = BatchService(db)
   batch = service.get_batch(batch_id)
   if not batch:
-    raise HTTPException(status_code=404, detail="بچ یافت نشد")
+    raise HTTPException(status_code=404, detail="Batch not found")
   return service.to_response(batch)
 
 

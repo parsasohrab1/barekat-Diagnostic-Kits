@@ -1,4 +1,4 @@
-"""API یادگیری نظارت‌شده با تأیید متخصص (HITL)."""
+"""Supervised learning with expert approval (HITL) API."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session

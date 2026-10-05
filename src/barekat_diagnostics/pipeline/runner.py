@@ -1,4 +1,4 @@
-"""خط لوله پردازش نمونه تشخیصی."""
+"""Diagnostic sample processing pipeline."""
 
 import json
 from typing import Callable
@@ -14,7 +14,7 @@ def process_sample(
   calibration: dict | None = None,
   explain_fn: Callable[[dict[str, float]], ModelExplanation] | None = None,
 ) -> DiagnosisReport:
-  """پردازش کامل: QC → استخراج ویژگی → پیش‌بینی → گزارش ساختاریافته."""
+  """Full processing: QC → feature extraction → prediction → structured report."""
   adapter = get_kit_adapter(sample.kit_type)
   raw_data = sample_to_raw_data(sample)
   features = adapter.extract_features(raw_data)

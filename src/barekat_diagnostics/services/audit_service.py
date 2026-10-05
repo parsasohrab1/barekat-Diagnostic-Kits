@@ -1,4 +1,4 @@
-"""سرویس احراز هویت."""
+"""Authentication service."""
 
 from sqlalchemy.orm import Session
 
@@ -38,7 +38,7 @@ class AuthService:
     role: str = "operator",
   ) -> User:
     if not is_valid_role(role):
-      raise ValueError(f"نقش نامعتبر: {role}")
+      raise ValueError(f"Invalid role: {role}")
     user = User(
       email=email,
       hashed_password=hash_password(password),

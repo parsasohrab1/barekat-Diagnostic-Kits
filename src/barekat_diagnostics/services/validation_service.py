@@ -1,4 +1,4 @@
-"""سرویس پروتکل اعتبارسنجی بالینی."""
+"""Clinical validation protocol service."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ class ClinicalValidationService:
       .first()
     )
     if existing:
-      raise ValidationError(f"پروتکل {protocol_id} قبلاً ثبت شده")
+      raise ValidationError(f"Protocol {protocol_id} has already been registered")
 
     row = ClinicalValidationProtocol(
       protocol_id=protocol_id,
@@ -109,15 +109,15 @@ class ClinicalValidationService:
   ) -> ClinicalValidationProtocol:
     row = self.get(protocol_id)
     if not row:
-      raise ValidationError("پروتکل یافت نشد")
+      raise ValidationError("Protocol not found")
 
     path = Path(row.data_path)
     if not path.exists():
-      raise ValidationError(f"فایل داده یافت نشد: {path}")
+      raise ValidationError(f"Data file not found: {path}")
 
     df = pd.read_csv(path)
     if "True_Status" not in df.columns:
-      raise ValidationError("ستون True_Status برای اعتبارسنجی لازم است")
+      raise ValidationError("The True_Status column is required for validation")
     if "Kit_Lot" not in df.columns and row.lot_number:
       df["Kit_Lot"] = row.lot_number
     if "Lab_Device" not in df.columns:
@@ -127,7 +127,7 @@ class ClinicalValidationService:
       row.status = "failed"
       row.passed = False
       row.sample_count = len(df)
-      row.failure_reason = f"تعداد نمونه ({len(df)}) کمتر از حداقل ({row.min_samples})"
+      row.failure_reason = f"Number of samples ({len(df)}) is less than the minimum ({row.min_samples})"
       self.db.commit()
       raise ValidationError(row.failure_reason)
 
@@ -179,9 +179,9 @@ class ClinicalValidationService:
   ) -> ClinicalValidationProtocol:
     row = self.get(protocol_id)
     if not row:
-      raise ValidationError("پروتکل یافت نشد")
+      raise ValidationError("Protocol not found")
     if row.status != "passed" or not row.passed:
-      raise ValidationError("فقط پروتکل موفق قابل امضا است")
+      raise ValidationError("Only a successful protocol can be signed")
 
     row.status = "signed"
     row.signed_by = actor_id

@@ -1,4 +1,4 @@
-"""مدل‌های پایگاه داده."""
+"""Database models."""
 
 from datetime import date, datetime
 
@@ -18,7 +18,7 @@ class KitCalibration(Base):
   cutoff_value: Mapped[float | None] = mapped_column(Float, nullable=True)
   standard_curve_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
   standard_curve_json: Mapped[str | None] = mapped_column(Text, nullable=True)
-  # کنترل‌های بچ‌محور (مقادیر انتظار)
+  # Batch-oriented controls (expected values)
   pos_control_ct_max: Mapped[float | None] = mapped_column(Float, nullable=True)
   neg_control_ct_min: Mapped[float | None] = mapped_column(Float, nullable=True)
   require_controls: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -26,7 +26,7 @@ class KitCalibration(Base):
 
 
 class AssayBatch(Base):
-  """بچ آزمایشگاهی با کنترل مثبت/منفی اجباری."""
+  """Laboratory batch with mandatory positive/negative control."""
 
   __tablename__ = "assay_batches"
 

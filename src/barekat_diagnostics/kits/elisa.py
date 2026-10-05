@@ -1,4 +1,4 @@
-"""آداپتور کیت ELISA."""
+"""ELISA kit adapter."""
 
 from typing import Any
 
@@ -46,7 +46,7 @@ class ElisaKitAdapter(KitAdapter):
     if quality is not None and quality < settings.qc_min_quality_score:
       flags.append(QCFlag(
         code="LOW_QUALITY",
-        message=f"امتیاز کیفیت پایین: {quality:.2f}",
+        message=f"Low quality score: {quality:.2f}",
         severity=QCSeverity.CRITICAL,
       ))
 
@@ -55,7 +55,7 @@ class ElisaKitAdapter(KitAdapter):
     if blank_od is not None and od_450 is not None and od_450 < blank_od * 1.1:
       flags.append(QCFlag(
         code="BELOW_BLANK",
-        message=f"OD نمونه نزدیک blank: {od_450:.3f}",
+        message=f"Sample OD close to blank: {od_450:.3f}",
         severity=QCSeverity.WARNING,
       ))
 
@@ -63,14 +63,14 @@ class ElisaKitAdapter(KitAdapter):
     if od_ratio is not None and od_ratio < 0:
       flags.append(QCFlag(
         code="INVALID_OD_RATIO",
-        message="نسبت OD نامعتبر",
+        message="Invalid OD ratio",
         severity=QCSeverity.CRITICAL,
       ))
 
     if raw_data.get("calibration_error"):
       flags.append(QCFlag(
         code="CALIBRATION_ERROR",
-        message="خطای کالیبراسیون کیت",
+        message="Kit calibration error",
         severity=QCSeverity.CRITICAL,
       ))
 

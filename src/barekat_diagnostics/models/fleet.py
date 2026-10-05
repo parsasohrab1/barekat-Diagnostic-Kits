@@ -1,4 +1,4 @@
-"""مدل‌های چندمرکزی، دستگاه‌های edge و ناوگان مدل."""
+"""Multi-center, edge device and model fleet models."""
 
 from datetime import datetime
 
@@ -51,7 +51,7 @@ class EdgeDevice(Base):
 
 
 class FleetModelRelease(Base):
-  """انتشار امن مدل ONNX برای ناوگان edge."""
+  """Secure ONNX model release for the edge fleet."""
 
   __tablename__ = "fleet_model_releases"
 

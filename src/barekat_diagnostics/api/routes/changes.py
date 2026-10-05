@@ -1,4 +1,4 @@
-"""API کنترل تغییر نرم‌افزار پزشکی."""
+"""Medical software change control API."""
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -55,7 +55,7 @@ def get_change(
   service = ChangeControlService(db)
   row = service.get(change_id)
   if not row:
-    raise HTTPException(status_code=404, detail="درخواست یافت نشد")
+    raise HTTPException(status_code=404, detail="Request not found")
   return service.to_response(row)
 
 

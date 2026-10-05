@@ -1,4 +1,4 @@
-"""تست تولید داده سنتتیک."""
+"""Test synthetic data generation."""
 
 from barekat_diagnostics.data.synthetic import generate_diagnostic_kit_data
 

@@ -1,4 +1,4 @@
-"""واردکنندگان داده دستگاه‌های آزمایشگاهی."""
+"""Importers for laboratory instrument data."""
 
 from barekat_diagnostics.importers.qpcr_csv import parse_qpcr_csv
 from barekat_diagnostics.importers.qpcr_rdml import parse_qpcr_rdml

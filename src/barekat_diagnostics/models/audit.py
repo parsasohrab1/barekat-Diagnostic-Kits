@@ -1,4 +1,4 @@
-"""مدل Audit Trail — immutable log برای compliance."""
+"""Audit Trail model — immutable log for compliance."""
 
 from datetime import datetime, timezone
 

@@ -1,4 +1,4 @@
-"""API endpoints کالیبراسیون کیت."""
+"""Kit calibration API endpoints."""
 
 import json
 
@@ -18,10 +18,10 @@ def register_calibration(
   body: CalibrationCreate,
   db: Session = Depends(get_db),
 ) -> CalibrationResponse:
-  """ثبت کالیبراسیون کیت (lot number، expiry، cutoff، standard curve)."""
+  """Record kit calibration (lot number, expiry, cutoff, standard curve)."""
   existing = db.query(KitCalibration).filter(KitCalibration.lot_number == body.lot_number).first()
   if existing:
-    raise HTTPException(status_code=409, detail="این lot قبلاً ثبت شده")
+    raise HTTPException(status_code=409, detail="This lot has already been registered")
 
   storage = get_storage()
   curve_path = None
@@ -60,11 +60,11 @@ async def upload_calibration(
   curve_file: UploadFile = File(...),
   db: Session = Depends(get_db),
 ) -> CalibrationResponse:
-  """آپلود فایل standard curve به MinIO."""
+  """Upload the standard curve file to MinIO."""
   content = await curve_file.read()
   standard_curve = json.loads(content)
   if not isinstance(standard_curve, list):
-    raise HTTPException(status_code=400, detail="فرمت standard curve نامعتبر")
+    raise HTTPException(status_code=400, detail="Invalid standard curve format")
 
   body = CalibrationCreate(
     lot_number=lot_number,
@@ -77,10 +77,10 @@ async def upload_calibration(
 
 @router.get("/{lot_number}", response_model=CalibrationResponse)
 def get_calibration(lot_number: str, db: Session = Depends(get_db)) -> CalibrationResponse:
-  """دریافت اطلاعات کالیبراسیون."""
+  """Get calibration information."""
   record = db.query(KitCalibration).filter(KitCalibration.lot_number == lot_number).first()
   if not record:
-    raise HTTPException(status_code=404, detail="کالیبراسیون یافت نشد")
+    raise HTTPException(status_code=404, detail="Calibration not found")
   return CalibrationResponse(
     lot_number=record.lot_number,
     kit_type=record.kit_type,

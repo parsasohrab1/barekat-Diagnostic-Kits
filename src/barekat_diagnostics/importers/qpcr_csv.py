@@ -1,4 +1,4 @@
-"""واردکننده خروجی CSV دستگاه‌های qPCR."""
+"""Importer for qPCR instrument CSV output."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from typing import Any
 
 from barekat_diagnostics.schemas import ImportedQpcrWell, SampleInput
 
-# نام‌های رایج ستون‌ها در خروجی‌های ABI / Bio-Rad / Roche / QuantStudio
+# Common column names in ABI / Bio-Rad / Roche / QuantStudio outputs
 _SAMPLE_KEYS = ("sample", "sample_id", "sample id", "sample name", "samplename", "name")
 _WELL_KEYS = ("well", "well_position", "position")
 _CT_KEYS = ("ct", "cq", "cт", "ct mean", "cq mean", "threshold cycle")
@@ -87,9 +87,9 @@ def parse_qpcr_csv(
   calibration_lot: str | None = None,
   default_kit_type: str = "qpcr",
 ) -> list[ImportedQpcrWell]:
-  """پارس CSV دستگاه qPCR به لیست چاهک‌ها."""
+  """Parse a qPCR instrument CSV into a list of wells."""
   text = content.decode("utf-8-sig") if isinstance(content, bytes) else content
-  # رد کردن خطوط متادیتای ابتدای فایل تا رسیدن به هدر
+  # Skip the metadata lines at the start of the file until reaching the header
   lines = text.splitlines()
   header_idx = 0
   for i, line in enumerate(lines[:40]):
@@ -100,7 +100,7 @@ def parse_qpcr_csv(
 
   reader = csv.DictReader(io.StringIO("\n".join(lines[header_idx:])))
   if not reader.fieldnames:
-    raise ValueError("فایل CSV هدر معتبر ندارد")
+    raise ValueError("The CSV file has no valid header")
 
   headers = list(reader.fieldnames)
   sample_col = _find_col(headers, _SAMPLE_KEYS)
@@ -111,9 +111,9 @@ def parse_qpcr_csv(
   curve_col = _find_col(headers, _CURVE_KEYS)
 
   if not sample_col and not well_col:
-    raise ValueError("ستون Sample یا Well در CSV یافت نشد")
+    raise ValueError("The Sample or Well column was not found in the CSV")
   if not ct_col:
-    raise ValueError("ستون Ct/Cq در CSV یافت نشد")
+    raise ValueError("The Ct/Cq column was not found in the CSV")
 
   wells: list[ImportedQpcrWell] = []
   seen: set[str] = set()
@@ -125,7 +125,7 @@ def parse_qpcr_csv(
       continue
 
     sample_id = sample_raw or f"WELL-{well_raw}"
-    # جلوگیری از تکراری در یک فایل
+    # prevent duplicates within a file
     unique_key = f"{sample_id}|{well_raw}|{row.get(target_col) if target_col else ''}"
     if unique_key in seen:
       sample_id = f"{sample_id}-{row_num}"
@@ -159,7 +159,7 @@ def parse_qpcr_csv(
     )
 
   if not wells:
-    raise ValueError("هیچ نمونهٔ معتبری در CSV یافت نشد")
+    raise ValueError("No valid sample was found in the CSV")
   return wells
 
 

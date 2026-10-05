@@ -1,4 +1,4 @@
-"""وظایف پردازش ناهمزمان."""
+"""Asynchronous processing tasks."""
 
 import json
 from datetime import datetime, timezone
@@ -34,7 +34,7 @@ def train_model_task(data_path: str = "data/raw/synthetic.csv") -> dict:
 
 @celery_app.task(bind=True, name="barekat_diagnostics.analyze_diagnosis")
 def analyze_diagnosis_task(self, job_id: str, sample_json: str) -> dict:
-  """پردازش ناهمزمان یک نمونه تشخیصی."""
+  """Asynchronous processing of a diagnostic sample."""
   db = SessionLocal()
   job = None
   try:

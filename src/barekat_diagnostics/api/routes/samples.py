@@ -1,4 +1,4 @@
-"""API endpoints مدیریت نمونه."""
+"""Sample management API endpoints."""
 
 import json
 
@@ -17,7 +17,7 @@ def create_sample(
   request: SampleCreateRequest,
   db: Session = Depends(get_db),
 ) -> SampleResponse:
-  """ثبت نمونه جدید."""
+  """Register a new sample."""
   service = SampleService(db)
   record = service.create_sample(request.sample, curve_data=request.sample.curve_data)
   return service.to_response(record)
@@ -34,7 +34,7 @@ async def upload_sample(
   curve_file: UploadFile | None = File(None),
   db: Session = Depends(get_db),
 ) -> SampleResponse:
-  """آپلود نمونه همراه با منحنی خام (۴۰ سیکل qPCR)."""
+  """Upload a sample with a raw curve (40 qPCR cycles)."""
   curve_data = None
   if curve_file:
     content = await curve_file.read()
@@ -61,15 +61,15 @@ async def upload_sample(
 
 @router.get("/", response_model=list[SampleResponse])
 def list_samples(limit: int = 50, db: Session = Depends(get_db)) -> list[SampleResponse]:
-  """لیست نمونه‌ها."""
+  """List samples."""
   return SampleService(db).list_samples(limit=limit)
 
 
 @router.get("/{sample_id}", response_model=SampleResponse)
 def get_sample(sample_id: str, db: Session = Depends(get_db)) -> SampleResponse:
-  """دریافت جزئیات نمونه."""
+  """Get sample details."""
   service = SampleService(db)
   record = service.get_sample(sample_id)
   if not record:
-    raise HTTPException(status_code=404, detail="نمونه یافت نشد")
+    raise HTTPException(status_code=404, detail="Sample not found")
   return service.to_response(record)

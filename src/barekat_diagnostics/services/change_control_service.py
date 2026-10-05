@@ -1,4 +1,4 @@
-"""مدیریت ریسک و کنترل تغییر نرم‌افزار پزشکی."""
+"""Risk management and medical software change control."""
 
 from __future__ import annotations
 
@@ -40,11 +40,11 @@ class ChangeControlService:
   ) -> ChangeRequest:
     change_id = body.change_id or f"CR-{uuid.uuid4().hex[:10].upper()}"
     if self.db.query(ChangeRequest).filter(ChangeRequest.change_id == change_id).first():
-      raise ChangeControlError(f"change_id تکراری: {change_id}")
+      raise ChangeControlError(f"Duplicate change_id: {change_id}")
 
     if body.change_type == "model" and body.risk_level in {"high", "critical"}:
       if not body.protocol_id:
-        raise ChangeControlError("برای تغییر مدل با ریسک بالا، protocol_id اعتبارسنجی الزامی است")
+        raise ChangeControlError("For a high-risk model change, a validation protocol_id is required")
 
     row = ChangeRequest(
       change_id=change_id,
@@ -94,23 +94,23 @@ class ChangeControlService:
   ) -> ChangeRequest:
     row = self.get(change_id)
     if not row:
-      raise ChangeControlError("درخواست تغییر یافت نشد")
+      raise ChangeControlError("Change request not found")
     if row.status not in {"pending", "draft"}:
-      raise ChangeControlError(f"وضعیت فعلی ({row.status}) قابل تصمیم‌گیری نیست")
+      raise ChangeControlError(f"The current status ({row.status}) cannot be decided on")
 
     if body.decision == "approved" and row.change_type == "model" and row.risk_level in {
       "high",
       "critical",
     }:
       if not row.protocol_id:
-        raise ChangeControlError("امضای پروتکل اعتبارسنجی برای تأیید لازم است")
+        raise ChangeControlError("Signing the validation protocol is required for approval")
       protocol = (
         self.db.query(ClinicalValidationProtocol)
         .filter(ClinicalValidationProtocol.protocol_id == row.protocol_id)
         .first()
       )
       if not protocol or protocol.status != "signed" or not protocol.passed:
-        raise ChangeControlError("پروتکل اعتبارسنجی باید signed و موفق باشد")
+        raise ChangeControlError("The validation protocol must be signed and successful")
 
     row.status = body.decision
     row.approved_by = actor_id
@@ -145,9 +145,9 @@ class ChangeControlService:
   ) -> ChangeRequestApplyResponse:
     row = self.get(change_id)
     if not row:
-      raise ChangeControlError("درخواست تغییر یافت نشد")
+      raise ChangeControlError("Change request not found")
     if row.status != "approved":
-      raise ChangeControlError("فقط درخواست تأییدشده قابل اعمال است")
+      raise ChangeControlError("Only an approved request can be applied")
 
     message = "applied"
     registry = ModelRegistry.load()
@@ -166,7 +166,7 @@ class ChangeControlService:
         message = registry.force_rollback(row.previous_version)
         registry.lock_production()
       else:
-        # pipeline/config: فقط ثبت اعمال (تنظیمات از detail_json خوانده می‌شود)
+        # pipeline/config: only record the application (settings are read from detail_json)
         message = f"change type {row.change_type} recorded as applied"
     except RegistryError as exc:
       raise ChangeControlError(exc.message) from exc

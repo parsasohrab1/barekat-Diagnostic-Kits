@@ -1,4 +1,4 @@
-"""API endpoints ارزیابی و مدیریت مدل ML."""
+"""ML model evaluation and management API endpoints."""
 
 from pathlib import Path
 
@@ -85,10 +85,10 @@ def train_model_endpoint(
   db: Session = Depends(get_db),
   user: CurrentUser = Depends(require_permission(Permission.ML_MANAGE)),
 ) -> TrainingMetrics:
-  """آموزش مدل — ثبت staging؛ promote مستقیم فقط اگر production قفل نباشد."""
+  """Train the model — staging recording; direct promote only if production is not locked."""
   path = Path(body.data_path)
   if not path.exists():
-    raise HTTPException(status_code=404, detail=f"فایل داده یافت نشد: {path}")
+    raise HTTPException(status_code=404, detail=f"Data file not found: {path}")
   df = pd.read_csv(path)
   try:
     _, metrics = train_classifier(df, version=body.version, promote=body.promote)
@@ -114,7 +114,7 @@ def evaluate_model_endpoint(
   _ = user
   path = Path(body.data_path)
   if not path.exists():
-    raise HTTPException(status_code=404, detail=f"فایل داده یافت نشد: {path}")
+    raise HTTPException(status_code=404, detail=f"Data file not found: {path}")
   df = pd.read_csv(path)
   X, y, _ = prepare_features(df)
   model = build_model()
@@ -132,10 +132,10 @@ def evaluate_pilot_endpoint(
   _ = user
   path = Path((body.data_path if body else None) or get_settings().pilot_data_path)
   if not path.exists():
-    raise HTTPException(status_code=404, detail=f"فایل پایلوت یافت نشد: {path}")
+    raise HTTPException(status_code=404, detail=f"Pilot file not found: {path}")
   df = pd.read_csv(path)
   if "True_Status" not in df.columns:
-    raise HTTPException(status_code=400, detail="ستون True_Status در دادهٔ پایلوت لازم است")
+    raise HTTPException(status_code=400, detail="The True_Status column is required in the pilot data")
   X, y, _ = prepare_features(df)
   model = build_model()
   model.fit(X, y)
@@ -157,7 +157,7 @@ def promote_version(
   db: Session = Depends(get_db),
   user: CurrentUser = Depends(require_permission(Permission.ML_PROMOTE)),
 ) -> ModelRegistryResponse:
-  """ارتقا صریح — اگر production قفل است، force فقط با change control."""
+  """Explicit promotion — if production is locked, force only with change control."""
   body = body or PromoteRequest()
   registry = ModelRegistry.load()
   try:
@@ -228,7 +228,7 @@ def configure_ab_test(
   if registry.production_locked and body.enabled:
     raise HTTPException(
       status_code=409,
-      detail="با قفل production، A/B فقط از طریق change control فعال می‌شود",
+      detail="With production locked, A/B is only enabled through change control",
     )
   registry.ab_test.enabled = body.enabled
   registry.ab_test.challenger_version = body.challenger_version
@@ -255,7 +255,7 @@ def rollback_model(
   if not rolled:
     raise HTTPException(
       status_code=400,
-      detail="rollback خودکار ممکن نیست — از change control یا force_rollback استفاده کنید",
+      detail="Automatic rollback is not possible — use change control or force_rollback",
     )
   AuditTrailService(db).log(
     "ml.rolled_back",

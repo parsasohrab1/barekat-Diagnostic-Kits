@@ -1,4 +1,4 @@
-"""آداپتور کیت طیف‌سنجی."""
+"""Spectroscopy kit adapter."""
 
 from typing import Any
 
@@ -55,7 +55,7 @@ class SpectroscopyKitAdapter(KitAdapter):
     if quality is not None and quality < settings.qc_min_quality_score:
       flags.append(QCFlag(
         code="LOW_QUALITY",
-        message=f"امتیاز کیفیت پایین: {quality:.2f}",
+        message=f"Low quality score: {quality:.2f}",
         severity=QCSeverity.CRITICAL,
       ))
 
@@ -63,7 +63,7 @@ class SpectroscopyKitAdapter(KitAdapter):
     if snr is not None and snr < settings.qc_min_signal_to_noise:
       flags.append(QCFlag(
         code="LOW_SNR",
-        message=f"نسبت سیگنال به نویز پایین: {snr:.2f}",
+        message=f"Low signal-to-noise ratio: {snr:.2f}",
         severity=QCSeverity.WARNING,
       ))
 
@@ -71,7 +71,7 @@ class SpectroscopyKitAdapter(KitAdapter):
     if peak is not None and peak <= 0:
       flags.append(QCFlag(
         code="NO_PEAK",
-        message="پیک قابل تشخیص یافت نشد",
+        message="No detectable peak found",
         severity=QCSeverity.CRITICAL,
       ))
 
@@ -79,7 +79,7 @@ class SpectroscopyKitAdapter(KitAdapter):
     if bands and len(bands) < 2:
       flags.append(QCFlag(
         code="INSUFFICIENT_BANDS",
-        message="تعداد باندهای طیفی ناکافی",
+        message="Insufficient number of spectral bands",
         severity=QCSeverity.WARNING,
       ))
 

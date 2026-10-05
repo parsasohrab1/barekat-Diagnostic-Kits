@@ -1,4 +1,4 @@
-"""تست‌های فاز ۳ — edge sync، تعارض، multi-tenant، bundle lock."""
+"""Phase 3 tests — edge sync, conflict, multi-tenant, bundle lock."""
 
 from __future__ import annotations
 

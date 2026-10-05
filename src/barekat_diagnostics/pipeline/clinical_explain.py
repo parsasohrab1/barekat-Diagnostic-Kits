@@ -1,4 +1,4 @@
-"""توضیح‌پذیری بالینی برای پزشک و بایولوژیست."""
+"""Clinical explainability for physicians and biologists."""
 
 from __future__ import annotations
 
@@ -37,12 +37,12 @@ def build_clinical_explanation(
   sample: SampleInput | None = None,
   calibration: dict | None = None,
 ) -> ClinicalExplanation:
-  """ساخت روایت بالینی قابل‌فهم برای پزشک/بایولوژیست."""
+  """Build a clinical narrative understandable to the physician/biologist."""
   insights: list[ClinicalInsight] = []
   metrics = report.clinical_metrics
   kit = report.kit_type
 
-  # نتیجه در برابر cutoff
+  # Result against the cutoff
   if metrics.primary_value is not None and metrics.cutoff is not None:
     if kit == "qpcr":
       delta = metrics.cutoff - metrics.primary_value

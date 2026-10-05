@@ -1,4 +1,4 @@
-"""یادگیری نظارت‌شده با تأیید متخصص (human-in-the-loop)."""
+"""Supervised learning with expert approval (human-in-the-loop)."""
 
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ class HitlService:
         .first()
       )
     if not diagnosis:
-      raise HitlError("گزارش تشخیص برای بازخورد یافت نشد")
+      raise HitlError("Diagnosis report for feedback not found")
 
     model_result = body.model_result or diagnosis.result
     agree = model_result == body.expert_result
@@ -59,7 +59,7 @@ class HitlService:
       except json.JSONDecodeError:
         features = None
 
-    # اگر features از sample dump باشد، فقط اعداد را نگه دار
+    # If features come from a sample dump, keep only the numbers
     if isinstance(features, dict):
       features = {k: float(v) for k, v in features.items() if isinstance(v, (int, float))}
 
@@ -81,7 +81,7 @@ class HitlService:
     )
     self.db.add(row)
 
-    # به‌روزرسانی وضعیت تأیید گزارش با برچسب متخصص
+    # Update the report approval status with the expert label
     diagnosis.approval_status = "expert_labeled"
     diagnosis.approval_note = (
       f"expert_result={body.expert_result}; model={model_result}; note={body.note or ''}"
@@ -122,18 +122,18 @@ class HitlService:
   def export_training_csv(self, path: str | Path | None = None) -> HitlExportResponse:
     rows = self.list_feedback(unused_only=False, limit=10_000)
     if not rows:
-      raise HitlError("هیچ بازخورد متخصصی برای export نیست")
+      raise HitlError("There is no expert feedback to export")
 
     records = []
     for r in rows:
       if r.expert_result not in {"positive", "negative"}:
-        continue  # فقط binary برای مدل فعلی
+        continue  # binary only for the current model
       feats: dict = {}
       if r.features_json:
         try:
           raw = json.loads(r.features_json)
           if isinstance(raw, dict):
-            # ممکن است sample dump کامل باشد
+            # It may be a full sample dump
             if "features" in raw and isinstance(raw["features"], dict):
               feats = raw["features"]
             else:
@@ -155,11 +155,11 @@ class HitlService:
         except json.JSONDecodeError:
           continue
 
-      # اطمینان از Feature_1..12 برای سازگاری با train
+      # Ensure Feature_1..12 for compatibility with training
       for i in range(1, 13):
         key = f"Feature_{i}"
         if key not in feats:
-          # از ct مشتق‌شده یا مقدار پیش‌فرض
+          # From the derived ct or a default value
           ct = feats.get("Ct_Value", feats.get("ct_value", 30.0))
           feats[key] = max(0.0, min(1.5, (40 - float(ct)) / 30 + (0.05 * i)))
 
@@ -180,7 +180,7 @@ class HitlService:
       records.append(record)
 
     if not records:
-      raise HitlError("بازخورد قابل‌آموزش (positive/negative) یافت نشد")
+      raise HitlError("No trainable feedback (positive/negative) found")
 
     out = Path(path or Path(self.settings.model_path) / "hitl_training.csv")
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -199,7 +199,7 @@ class HitlService:
     from barekat_diagnostics.ml.classifier import train_classifier
 
     df = pd.read_csv(export.path)
-    # اختیاری: ترکیب با synthetic
+    # Optional: combine with synthetic
     if body.merge_with_path:
       base = Path(body.merge_with_path)
       if base.exists():
@@ -215,7 +215,7 @@ class HitlService:
     except RuntimeError as exc:
       raise HitlError(str(exc)) from exc
 
-    # علامت‌گذاری feedbackهای استفاده‌شده
+    # Mark the feedback used
     unused = self.list_feedback(unused_only=True, limit=10_000)
     for r in unused:
       if r.expert_result in {"positive", "negative"}:

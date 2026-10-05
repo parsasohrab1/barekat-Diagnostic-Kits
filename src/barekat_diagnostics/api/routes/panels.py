@@ -1,4 +1,4 @@
-"""API پنل چندمارکری / چندبیماری."""
+"""Multi-marker / multi-disease panel API."""
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -59,7 +59,7 @@ def get_panel(
   service = PanelService(db)
   row = service.get_panel(panel_id)
   if not row:
-    raise HTTPException(status_code=404, detail="پنل یافت نشد")
+    raise HTTPException(status_code=404, detail="Panel not found")
   return service.to_response(row)
 
 

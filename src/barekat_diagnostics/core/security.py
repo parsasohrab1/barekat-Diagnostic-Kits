@@ -1,4 +1,4 @@
-"""امنیت: JWT و هش رمز عبور."""
+"""Security: JWT and password hashing."""
 
 from datetime import datetime, timedelta, timezone
 
@@ -35,4 +35,4 @@ def verify_access_token(token: str) -> dict:
   try:
     return jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
   except JWTError as exc:
-    raise TokenDecodeError("توکن نامعتبر یا منقضی شده") from exc
+    raise TokenDecodeError("Invalid or expired token") from exc

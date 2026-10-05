@@ -1,4 +1,4 @@
-"""اسکیماهای Pydantic برای API."""
+"""Pydantic schemas for the API."""
 
 from datetime import date, datetime
 from typing import Literal
@@ -403,7 +403,7 @@ class DiagnosisReport(BaseModel):
 
 
 class DiagnosisResponse(DiagnosisReport):
-  """سازگاری با نسخه قبلی API."""
+  """Compatibility with the previous API version."""
 
   @property
   def qc_warnings(self) -> list[str]:

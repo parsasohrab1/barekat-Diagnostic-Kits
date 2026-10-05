@@ -1,4 +1,4 @@
-"""ارزیابی مدل با معیارهای IVD."""
+"""Model evaluation with IVD metrics."""
 
 from __future__ import annotations
 
@@ -95,7 +95,7 @@ def evaluate_model(
   group_col: str = "Lab_Device",
   lot_col: str = "Kit_Lot",
 ) -> IVDEvaluationResult:
-  """ارزیابی کامل IVD با cross-validation و confusion matrix per lot."""
+  """Full IVD evaluation with cross-validation and confusion matrix per lot."""
   X, y, features = _prepare_xy(df)
   if model is None:
     model = build_model()

@@ -1,4 +1,4 @@
-"""API لاگ حسابرسی."""
+"""Audit log API."""
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session

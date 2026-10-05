@@ -1,4 +1,4 @@
-"""ثبت و بازیابی آداپتور کیت."""
+"""Kit adapter registration and retrieval."""
 
 from barekat_diagnostics.kits.base import KitAdapter, KitType
 from barekat_diagnostics.kits.elisa import ElisaKitAdapter
@@ -17,7 +17,7 @@ def get_kit_adapter(kit_type: str | KitType) -> KitAdapter:
     try:
       kit_type = KitType(kit_type.lower())
     except ValueError as exc:
-      raise ValueError(f"نوع کیت نامعتبر: {kit_type}") from exc
+      raise ValueError(f"Invalid kit type: {kit_type}") from exc
   if kit_type not in _ADAPTERS:
-    raise ValueError(f"آداپتور برای {kit_type} پیاده‌سازی نشده")
+    raise ValueError(f"Adapter not implemented for {kit_type}")
   return _ADAPTERS[kit_type]

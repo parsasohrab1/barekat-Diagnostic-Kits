@@ -115,24 +115,24 @@
   <header>
     <div>
       <h1>Barekat Lab Operator</h1>
-      <p>بارگذاری qPCR · وضعیت Job · QC · تأیید گزارش</p>
+      <p>qPCR upload · Job status · QC · Report approval</p>
     </div>
     <div class="actions">
-      <button class="secondary" id="btnRefresh">بروزرسانی</button>
+      <button class="secondary" id="btnRefresh">Refresh</button>
     </div>
   </header>
   <main>
     <div class="stats" id="stats"></div>
 
     <section>
-      <h2>واردسازی خروجی دستگاه (CSV / RDML)</h2>
+      <h2>Import instrument output (CSV / RDML)</h2>
       <div class="row">
         <div>
-          <label>فایل</label>
+          <label>File</label>
           <input type="file" id="qpcrFile" accept=".csv,.rdml,.xml" />
         </div>
         <div>
-          <label>فرمت</label>
+          <label>Format</label>
           <select id="qpcrFormat">
             <option value="auto">auto</option>
             <option value="csv">csv</option>
@@ -142,7 +142,7 @@
       </div>
       <div class="row">
         <div>
-          <label>Lot کالیبراسیون</label>
+          <label>Calibration lot</label>
           <input id="calLot" placeholder="LOT-2026-A" />
         </div>
         <div>
@@ -150,12 +150,12 @@
           <input id="batchIdImport" placeholder="BATCH-001" />
         </div>
       </div>
-      <button id="btnImport">آپلود و ثبت نمونه‌ها</button>
+      <button id="btnImport">Upload and register samples</button>
       <div class="msg" id="importMsg"></div>
     </section>
 
     <section>
-      <h2>بچ و کنترل مثبت / منفی</h2>
+      <h2>Batch and Positive / Negative Control</h2>
       <div class="row">
         <div>
           <label>Batch ID</label>
@@ -167,67 +167,67 @@
         </div>
       </div>
       <div class="actions">
-        <button id="btnCreateBatch">ایجاد بچ</button>
-        <button class="secondary" id="btnValidateBatch">اعتبارسنجی کنترل‌ها</button>
+        <button id="btnCreateBatch">Create batch</button>
+        <button class="secondary" id="btnValidateBatch">Validate controls</button>
       </div>
       <div class="row" style="margin-top:0.8rem">
         <div>
-          <label>نمونه کنترل مثبت</label>
+          <label>Positive control sample</label>
           <input id="posCtrl" placeholder="PC-001" />
         </div>
         <div>
-          <label>نمونه کنترل منفی</label>
+          <label>Negative control sample</label>
           <input id="negCtrl" placeholder="NC-001" />
         </div>
       </div>
       <div class="row">
         <div>
-          <label>Ct کنترل مثبت</label>
+          <label>Positive control Ct</label>
           <input id="posCt" type="number" step="0.1" placeholder="24.5" />
         </div>
         <div>
-          <label>Ct کنترل منفی</label>
+          <label>Negative control Ct</label>
           <input id="negCt" type="number" step="0.1" placeholder="40.0" />
         </div>
       </div>
-      <button class="secondary" id="btnRegisterControls">ثبت کنترل‌ها</button>
+      <button class="secondary" id="btnRegisterControls">Register controls</button>
       <div class="msg" id="batchMsg"></div>
     </section>
 
     <section>
-      <h2>وضعیت Jobها</h2>
+      <h2>Jobs Status</h2>
       <div id="jobsTable"></div>
     </section>
 
     <section>
-      <h2>نمونه‌های اخیر و QC</h2>
+      <h2>Recent Samples and QC</h2>
       <div id="samplesTable"></div>
     </section>
 
     <section>
-      <h2>تأیید گزارش</h2>
+      <h2>Report Approval</h2>
       <div class="row">
         <div>
           <label>Report ID</label>
           <input id="reportId" type="number" placeholder="1" />
         </div>
         <div>
-          <label>تصمیم</label>
+          <label>Decision</label>
           <select id="approvalDecision">
-            <option value="approved">تأیید</option>
-            <option value="rejected">رد</option>
+            <option value="approved">Approve</option>
+            <option value="rejected">Reject</option>
           </select>
         </div>
       </div>
-      <label>یادداشت</label>
-      <textarea id="approvalNote" rows="2" placeholder="تأیید پاتولوژیست"></textarea>
-      <button id="btnApprove">ثبت تأیید</button>
+      <label>Note</label>
+      <textarea id="approvalNote" rows="2" placeholder="Pathologist approval"></textarea>
+      <button id="btnApprove">Record approval</button>
       <div class="msg" id="approveMsg"></div>
     </section>
 
     <section>
-      <h2>ارزیابی پایلوت (Se/Sp + CI)</h2>
-      <button id="btnPilotEval">اجرای ارزیابی روی data/pilot/pilot_qpcr.csv</button>
+      <h2>Pilot Evaluation (Se/Sp + CI)</h2>
+      <button id="btnPilotEval">Run evaluation on data/pilot/pilot_qpcr.csv</button>
       <div class="msg" id="pilotMsg"></div>
     </section>
   </main>
@@ -256,26 +256,26 @@
     async function refreshSummary() {
       const s = await api("/dashboard/summary");
       document.getElementById("stats").innerHTML = [
-        ["نمونه‌ها", s.samples_total],
-        ["در انتظار", s.samples_pending],
-        ["Job فعال", s.jobs_running],
-        ["Job تمام‌شده", s.jobs_completed],
-        ["بچ باز", s.batches_open],
-        ["بچ معتبر", s.batches_validated],
-        ["در انتظار تأیید", s.reports_pending_approval],
-        ["QC ناموفق", s.recent_qc_failures],
+        ["Samples", s.samples_total],
+        ["Pending", s.samples_pending],
+        ["Active jobs", s.jobs_running],
+        ["Completed jobs", s.jobs_completed],
+        ["Open batches", s.batches_open],
+        ["Validated batches", s.batches_validated],
+        ["Awaiting approval", s.reports_pending_approval],
+        ["Failed QC", s.recent_qc_failures],
       ].map(([k, v]) => `<div class="stat"><span>${k}</span><strong>${v}</strong></div>`).join("");
     }
 
     async function refreshJobs() {
       const jobs = await api("/diagnosis/jobs?limit=20");
       if (!jobs.length) {
-        document.getElementById("jobsTable").innerHTML = "<p class='msg'>Jobی ثبت نشده</p>";
+        document.getElementById("jobsTable").innerHTML = "<p class='msg'>No jobs recorded</p>";
         return;
       }
       document.getElementById("jobsTable").innerHTML = `
         <table>
-          <thead><tr><th>Job</th><th>نمونه</th><th>وضعیت</th><th>پیشرفت</th></tr></thead>
+          <thead><tr><th>Job</th><th>Sample</th><th>Status</th><th>Progress</th></tr></thead>
           <tbody>
             ${jobs.map(j => `<tr>
               <td>${j.job_id.slice(0, 8)}…</td>
@@ -290,12 +290,12 @@
     async function refreshSamples() {
       const samples = await api("/samples/?limit=20");
       if (!samples.length) {
-        document.getElementById("samplesTable").innerHTML = "<p class='msg'>نمونه‌ای نیست</p>";
+        document.getElementById("samplesTable").innerHTML = "<p class='msg'>No samples</p>";
         return;
       }
       document.getElementById("samplesTable").innerHTML = `
         <table>
-          <thead><tr><th>نمونه</th><th>نقش</th><th>بچ</th><th>وضعیت</th><th>Lot</th></tr></thead>
+          <thead><tr><th>Sample</th><th>Role</th><th>Batch</th><th>Status</th><th>Lot</th></tr></thead>
           <tbody>
             ${samples.map(s => `<tr>
               <td>${s.sample_id}</td>
@@ -318,7 +318,7 @@
       const msg = document.getElementById("importMsg");
       try {
         const file = document.getElementById("qpcrFile").files[0];
-        if (!file) throw new Error("فایل انتخاب نشده");
+        if (!file) throw new Error("No file selected");
         const fd = new FormData();
         fd.append("file", file);
         fd.append("format", document.getElementById("qpcrFormat").value);
@@ -329,8 +329,8 @@
         fd.append("persist", "true");
         const res = await fetch(API + "/import/qpcr", { method: "POST", body: fd });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "خطا");
-        msg.textContent = `وارد شد: ${data.imported}\n` + JSON.stringify(data.summary, null, 2);
+        if (!res.ok) throw new Error(data.detail || "Error");
+        msg.textContent = `Imported: ${data.imported}\n` + JSON.stringify(data.summary, null, 2);
         await refreshAll();
       } catch (e) { msg.textContent = e.message; }
     };
@@ -348,7 +348,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-        msg.textContent = `بچ ایجاد شد: ${data.batch_id} (${data.status})`;
+        msg.textContent = `Batch created: ${data.batch_id} (${data.status})`;
         await refreshSummary();
       } catch (e) { msg.textContent = e.message; }
     };
@@ -368,7 +368,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-        msg.textContent = `کنترل‌ها ثبت شد\npos Ct=${data.positive_control_ct} · neg Ct=${data.negative_control_ct}`;
+        msg.textContent = `Controls registered\npos Ct=${data.positive_control_ct} · neg Ct=${data.negative_control_ct}`;
       } catch (e) { msg.textContent = e.message; }
     };
 
@@ -395,7 +395,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-        msg.textContent = `گزارش ${data.report_id}: ${data.approval_status} توسط ${data.approved_by_email}`;
+        msg.textContent = `Report ${data.report_id}: ${data.approval_status} by ${data.approved_by_email}`;
         await refreshSummary();
       } catch (e) { msg.textContent = e.message; }
     };

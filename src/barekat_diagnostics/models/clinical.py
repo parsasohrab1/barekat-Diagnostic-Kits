@@ -1,4 +1,4 @@
-"""مدل‌های فاز ۴ — پنل مارکر، پرونده چندکیتی، HITL، reassessment."""
+"""Phase 4 models — marker panel, multi-kit case, HITL, reassessment."""
 
 from datetime import datetime
 
@@ -9,7 +9,7 @@ from barekat_diagnostics.core.database import Base
 
 
 class MarkerPanel(Base):
-  """تعریف پنل چندمارکری / چندبیماری."""
+  """Definition of a multi-marker / multi-disease panel."""
 
   __tablename__ = "marker_panels"
 
@@ -24,7 +24,7 @@ class MarkerPanel(Base):
 
 
 class ClinicalCase(Base):
-  """پرونده بالینی که چند نمونه/کیت را ترکیب می‌کند."""
+  """Clinical case combining several samples/kits."""
 
   __tablename__ = "clinical_cases"
 
@@ -46,7 +46,7 @@ class ClinicalCase(Base):
 
 
 class CaseAssay(Base):
-  """اتصال نمونه/کیت به پرونده بالینی."""
+  """Linking a sample/kit to a clinical case."""
 
   __tablename__ = "case_assays"
 
@@ -64,7 +64,7 @@ class CaseAssay(Base):
 
 
 class PanelMarkerResult(Base):
-  """نتیجه تک‌مارکر در یک اجرای پنل."""
+  """Single-marker result in a panel run."""
 
   __tablename__ = "panel_marker_results"
 
@@ -84,7 +84,7 @@ class PanelMarkerResult(Base):
 
 
 class ReassessmentRequest(Base):
-  """درخواست reassessment پس از QC مشکوک."""
+  """Reassessment request after suspicious QC."""
 
   __tablename__ = "reassessment_requests"
 
@@ -105,7 +105,7 @@ class ReassessmentRequest(Base):
 
 
 class ExpertFeedback(Base):
-  """برچسب اصلاح‌شده متخصص برای یادگیری نظارت‌شده (HITL)."""
+  """Expert-corrected label for supervised learning (HITL)."""
 
   __tablename__ = "expert_feedback"
 

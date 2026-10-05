@@ -1,4 +1,4 @@
-"""مانیتورینگ drift مدل و افت کیفیت سیگنال."""
+"""Model drift and signal quality degradation monitoring."""
 
 from __future__ import annotations
 
@@ -154,7 +154,7 @@ class DriftMonitorService:
           baseline_value=float(base_stats[worst_feature]["mean"]),
           observed_value=float(np.mean(recent_feats[worst_feature])),
           threshold=drift_threshold,
-          message=f"جابجایی ویژگی {worst_feature}: z-shift={max_shift:.2f}",
+          message=f"Feature shift {worst_feature}: z-shift={max_shift:.2f}",
           detail={"z_shift": max_shift, "feature": worst_feature},
         )
       )
@@ -173,7 +173,7 @@ class DriftMonitorService:
             baseline_value=baseline.positive_rate,
             observed_value=obs_pos,
             threshold=self.settings.drift_positive_rate_threshold,
-            message=f"نرخ مثبت از {baseline.positive_rate:.2f} به {obs_pos:.2f} تغییر کرد",
+            message=f"Positive rate changed from {baseline.positive_rate:.2f} to {obs_pos:.2f}",
           )
         )
 
@@ -192,7 +192,7 @@ class DriftMonitorService:
             baseline_value=baseline.mean_quality_score,
             observed_value=obs_q,
             threshold=quality_drop,
-            message=f"افت کیفیت سیگنال: {obs_q:.3f} (پایه {baseline.mean_quality_score:.3f})",
+            message=f"Signal quality drop: {obs_q:.3f} (baseline {baseline.mean_quality_score:.3f})",
           )
         )
     if baseline.mean_snr is not None and recent_snr:
@@ -207,7 +207,7 @@ class DriftMonitorService:
             baseline_value=baseline.mean_snr,
             observed_value=obs_snr,
             threshold=quality_drop * 2,
-            message=f"افت SNR: {obs_snr:.3f} (پایه {baseline.mean_snr:.3f})",
+            message=f"SNR drop: {obs_snr:.3f} (baseline {baseline.mean_snr:.3f})",
           )
         )
 
@@ -247,7 +247,7 @@ class DriftMonitorService:
   ) -> DriftAlert:
     row = self.db.query(DriftAlert).filter(DriftAlert.alert_id == alert_id).first()
     if not row:
-      raise ValueError("هشدار یافت نشد")
+      raise ValueError("Alert not found")
     row.status = "acknowledged"
     row.acknowledged_by = actor_id
     row.acknowledged_at = datetime.now(timezone.utc)

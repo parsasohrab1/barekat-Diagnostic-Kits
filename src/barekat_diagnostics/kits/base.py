@@ -1,4 +1,4 @@
-"""لایه abstraction برای انواع کیت تشخیصی."""
+"""Abstraction layer for diagnostic kit types."""
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -46,18 +46,18 @@ class ClinicalMetrics:
 
 
 class KitAdapter(ABC):
-  """رابط مشترک برای پردازش انواع کیت."""
+  """Common interface for processing kit types."""
 
   kit_type: KitType
   default_cutoff: float
 
   @abstractmethod
   def extract_features(self, raw_data: dict[str, Any]) -> dict[str, float]:
-    """استخراج ویژگی‌ها از داده خام."""
+    """Extract features from raw data."""
 
   @abstractmethod
   def run_qc(self, raw_data: dict[str, Any], features: dict[str, float]) -> QCResult:
-    """کنترل کیفیت مختص نوع کیت."""
+    """Kit-type-specific quality control."""
 
   def get_cutoff(self, calibration: dict[str, Any] | None = None) -> float:
     if calibration and calibration.get("cutoff_value") is not None:
@@ -70,7 +70,7 @@ class KitAdapter(ABC):
     features: dict[str, float],
     calibration: dict[str, Any] | None = None,
   ) -> ClinicalMetrics:
-    """ساخت متریک‌های بالینی برای گزارش."""
+    """Build clinical metrics for the report."""
 
   def confidence_interval(self, value: float, confidence: float) -> tuple[float, float]:
     margin = (1.0 - confidence) * abs(value) * 0.1 + 0.5

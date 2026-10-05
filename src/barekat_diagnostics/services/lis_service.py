@@ -1,4 +1,4 @@
-"""یکپارچگی LIS — FHIR DiagnosticReport و HL7 v2 ORU^R01."""
+"""LIS integration — FHIR DiagnosticReport and HL7 v2 ORU^R01."""
 
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ def build_hl7_oru_r01(
   model_version: str = "v1",
   observation_dt: datetime | None = None,
 ) -> str:
-  """ساخت پیام HL7 v2.5 ORU^R01 برای نتیجه تشخیص."""
+  """Build an HL7 v2.5 ORU^R01 message for the diagnosis result."""
   now = observation_dt or datetime.now(timezone.utc)
   ts = now.strftime("%Y%m%d%H%M%S")
   msg_id = f"BKT{uuid.uuid4().hex[:12].upper()}"
@@ -84,7 +84,7 @@ def build_fhir_diagnostic_report(
   model_version: str = "v1",
   qc_passed: bool = True,
 ) -> dict:
-  """ساخت FHIR R4 DiagnosticReport."""
+  """Build a FHIR R4 DiagnosticReport."""
   now = datetime.now(timezone.utc).isoformat()
   return {
     "resourceType": "DiagnosticReport",
@@ -143,7 +143,7 @@ class LisService:
     actor_role: str | None = None,
   ) -> LabOrder:
     if self.db.query(LabOrder).filter(LabOrder.order_id == body.order_id).first():
-      raise LisError(f"سفارش {body.order_id} تکراری است")
+      raise LisError(f"Order {body.order_id} is a duplicate")
     order = LabOrder(
       order_id=body.order_id,
       patient_id=body.patient_id,
@@ -188,7 +188,7 @@ class LisService:
         .first()
       )
     if not diagnosis:
-      raise LisError("گزارش تشخیص برای export یافت نشد")
+      raise LisError("Diagnosis report for export not found")
 
     sample = self.db.query(Sample).filter(Sample.sample_id == body.sample_id).first()
     patient_id = body.patient_id or (sample.patient_id if sample else None)
@@ -231,7 +231,7 @@ class LisService:
       payload = json.dumps(resource, ensure_ascii=False, indent=2)
       content_type = "application/fhir+json"
     else:
-      raise LisError("فرمت باید hl7 یا fhir باشد")
+      raise LisError("The format must be hl7 or fhir")
 
     export = FhirExport(
       sample_id=diagnosis.sample_id,

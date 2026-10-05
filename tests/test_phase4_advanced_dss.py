@@ -1,4 +1,4 @@
-"""تست‌های فاز ۴ — پنل چندمارکری، پرونده چندکیتی، reassessment، HITL."""
+"""Phase 4 tests — multi-marker panel, multi-kit case, reassessment, HITL."""
 
 from __future__ import annotations
 

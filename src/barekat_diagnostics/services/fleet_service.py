@@ -1,4 +1,4 @@
-"""مدیریت ناوگان مدل — انتشار امن ONNX و به‌روزرسانی دستگاه‌ها."""
+"""Model fleet management — secure ONNX release and device updates."""
 
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ class FleetService:
 
   def register_device(self, body: EdgeDeviceCreate, **actor) -> EdgeDevice:
     if self.db.query(EdgeDevice).filter(EdgeDevice.device_id == body.device_id).first():
-      raise FleetError(f"دستگاه تکراری: {body.device_id}")
+      raise FleetError(f"Duplicate device: {body.device_id}")
     row = EdgeDevice(
       device_id=body.device_id,
       center_id=body.center_id,
@@ -108,7 +108,7 @@ class FleetService:
   def publish_release(self, release_id: str, **actor) -> FleetModelRelease:
     row = self.db.query(FleetModelRelease).filter(FleetModelRelease.release_id == release_id).first()
     if not row:
-      raise FleetError("release یافت نشد")
+      raise FleetError("Release not found")
     row.status = "published"
     row.published_at = datetime.now(timezone.utc)
     self.db.commit()
@@ -125,7 +125,7 @@ class FleetService:
   def get_manifest_for_device(self, device_id: str) -> FleetManifestResponse:
     device = self.db.query(EdgeDevice).filter(EdgeDevice.device_id == device_id).first()
     if not device:
-      raise FleetError(f"دستگاه یافت نشد: {device_id}")
+      raise FleetError(f"Device not found: {device_id}")
 
     q = (
       self.db.query(FleetModelRelease)
@@ -142,7 +142,7 @@ class FleetService:
         release = cand
         break
     if not release:
-      raise FleetError("هیچ release منتشرشده‌ای برای این دستگاه نیست")
+      raise FleetError("There is no published release for this device")
 
     device.last_seen_at = datetime.now(timezone.utc)
     device.status = "online"
@@ -161,7 +161,7 @@ class FleetService:
   def ack_model_update(self, body: DeviceModelAck, **actor) -> EdgeDevice:
     device = self.db.query(EdgeDevice).filter(EdgeDevice.device_id == body.device_id).first()
     if not device:
-      raise FleetError("دستگاه یافت نشد")
+      raise FleetError("Device not found")
     device.model_version = body.model_version
     device.onnx_checksum = body.checksum_sha256
     device.last_latency_p95_ms = body.latency_p95_ms
@@ -181,10 +181,10 @@ class FleetService:
     return device
 
   def apply_model_to_local(self, download_path: str, target_onnx: str | None = None) -> dict:
-    """کپی امن مدل از release به مسیر ONNX دستگاه (برای CLI/agent)."""
+    """Secure copy of the model from the release to the device ONNX path (for CLI/agent)."""
     src = Path(download_path)
     if not src.exists():
-      raise FleetError(f"فایل مدل یافت نشد: {src}")
+      raise FleetError(f"Model file not found: {src}")
     dest = Path(target_onnx or self.settings.onnx_model_path)
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(src.read_bytes())

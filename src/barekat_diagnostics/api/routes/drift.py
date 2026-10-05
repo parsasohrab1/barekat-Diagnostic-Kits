@@ -1,4 +1,4 @@
-"""API مانیتورینگ drift و کیفیت سیگنال."""
+"""Drift and signal quality monitoring API."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session

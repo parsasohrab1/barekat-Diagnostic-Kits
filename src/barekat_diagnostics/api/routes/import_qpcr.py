@@ -1,4 +1,4 @@
-"""API واردسازی خروجی دستگاه qPCR (CSV / RDML)."""
+"""qPCR instrument output import API (CSV / RDML)."""
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
@@ -25,10 +25,10 @@ async def import_qpcr_file(
   db: Session = Depends(get_db),
   user: CurrentUser = Depends(require_permission(Permission.SAMPLES_WRITE)),
 ) -> QpcrImportResponse:
-  """آپلود خروجی دستگاه qPCR — فرمت CSV یا RDML."""
+  """Upload qPCR instrument output — CSV or RDML format."""
   content = await file.read()
   if not content:
-    raise HTTPException(status_code=400, detail="فایل خالی است")
+    raise HTTPException(status_code=400, detail="The file is empty")
 
   filename = (file.filename or "").lower()
   fmt = format.lower().strip()
@@ -44,7 +44,7 @@ async def import_qpcr_file(
     elif fmt == "csv":
       wells = parse_qpcr_csv(content, calibration_lot=calibration_lot)
     else:
-      raise HTTPException(status_code=400, detail="فرمت باید csv یا rdml باشد")
+      raise HTTPException(status_code=400, detail="The format must be csv or rdml")
   except ValueError as exc:
     raise HTTPException(status_code=400, detail=str(exc)) from exc
 

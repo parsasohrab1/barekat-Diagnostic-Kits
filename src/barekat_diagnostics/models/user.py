@@ -1,4 +1,4 @@
-"""مدل کاربر سیستم."""
+"""System user model."""
 
 import uuid
 from datetime import datetime, timezone

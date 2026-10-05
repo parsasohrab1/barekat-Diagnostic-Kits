@@ -1,4 +1,4 @@
-"""وابستگی‌های FastAPI: احراز هویت و RBAC."""
+"""FastAPI dependencies: authentication and RBAC."""
 
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ async def get_current_user(
   if not token:
     raise HTTPException(
       status_code=status.HTTP_401_UNAUTHORIZED,
-      detail="احراز هویت لازم است",
+      detail="Authentication required",
       headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -56,13 +56,13 @@ async def get_current_user(
   except (TokenDecodeError, KeyError, ValueError):
     raise HTTPException(
       status_code=status.HTTP_401_UNAUTHORIZED,
-      detail="توکن نامعتبر",
+      detail="Invalid token",
       headers={"WWW-Authenticate": "Bearer"},
     )
 
   user = db.query(User).filter(User.id == str(user_id), User.is_active.is_(True)).first()
   if not user:
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="کاربر یافت نشد")
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
   return CurrentUser(
     id=uuid.UUID(str(user.id)),
@@ -77,7 +77,7 @@ def require_permission(permission: Permission):
     if not has_permission(user.role, permission):
       raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
-        detail=f"دسترسی مجاز نیست: {permission.value}",
+        detail=f"Access not allowed: {permission.value}",
       )
     return user
 

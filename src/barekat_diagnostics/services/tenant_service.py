@@ -1,4 +1,4 @@
-"""سرویس چندمرکزی / multi-tenant و گزارش تجمیعی."""
+"""Multi-center / multi-tenant service and aggregate report."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ class TenantService:
 
   def create_tenant(self, body: TenantCreate, **actor) -> Tenant:
     if self.db.query(Tenant).filter(Tenant.tenant_id == body.tenant_id).first():
-      raise TenantError(f"tenant تکراری: {body.tenant_id}")
+      raise TenantError(f"Duplicate tenant: {body.tenant_id}")
     row = Tenant(tenant_id=body.tenant_id, name=body.name)
     self.db.add(row)
     self.db.commit()
@@ -40,9 +40,9 @@ class TenantService:
 
   def create_center(self, body: CenterCreate, **actor) -> Center:
     if not self.db.query(Tenant).filter(Tenant.tenant_id == body.tenant_id).first():
-      raise TenantError(f"tenant یافت نشد: {body.tenant_id}")
+      raise TenantError(f"Tenant not found: {body.tenant_id}")
     if self.db.query(Center).filter(Center.center_id == body.center_id).first():
-      raise TenantError(f"center تکراری: {body.center_id}")
+      raise TenantError(f"Duplicate center: {body.center_id}")
     row = Center(
       center_id=body.center_id,
       tenant_id=body.tenant_id,

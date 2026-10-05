@@ -1,4 +1,4 @@
-"""API endpoints تشخیص."""
+"""Diagnosis API endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
@@ -31,7 +31,7 @@ def analyze_sample(
   db: Session = Depends(get_db),
   user: CurrentUser = Depends(require_permission(Permission.DIAGNOSIS_RUN)),
 ):
-  """تحلیل یک نمونه — sync یا async (با async_mode=true)."""
+  """Analyze a sample — sync or async (with async_mode=true)."""
   service = DiagnosisService(db)
   try:
     if async_mode:
@@ -68,7 +68,7 @@ def get_diagnosis_job(
   _ = user
   result = DiagnosisService(db).get_job(job_id)
   if not result:
-    raise HTTPException(status_code=404, detail="job یافت نشد")
+    raise HTTPException(status_code=404, detail="Job not found")
   return result
 
 
@@ -81,7 +81,7 @@ def get_diagnosis_history(
   _ = user
   reports = DiagnosisService(db).get_history(sample_id)
   if not reports:
-    raise HTTPException(status_code=404, detail="تشخیصی یافت نشد")
+    raise HTTPException(status_code=404, detail="Diagnosis not found")
   return reports
 
 
@@ -114,7 +114,7 @@ def download_report_pdf(
   _ = user
   pdf_bytes = DiagnosisService(db).get_pdf_bytes(sample_id, report_id)
   if not pdf_bytes:
-    raise HTTPException(status_code=404, detail="گزارش PDF یافت نشد")
+    raise HTTPException(status_code=404, detail="PDF report not found")
   return Response(
     content=pdf_bytes,
     media_type="application/pdf",
@@ -144,7 +144,7 @@ def get_batch_status(
   _ = user
   result = DiagnosisService(db).get_batch_job(job_id)
   if not result:
-    raise HTTPException(status_code=404, detail="job یافت نشد")
+    raise HTTPException(status_code=404, detail="Job not found")
   return result
 
 
@@ -154,7 +154,7 @@ def sync_offline_report(
   db: Session = Depends(get_db),
   user: CurrentUser = Depends(get_current_user),
 ) -> dict:
-  """دریافت گزارش از دستگاه offline با حل تعارض و idempotency."""
+  """Receive a report from an offline device with conflict resolution and idempotency."""
   _ = user
   report_data = request.get("report")
   if not report_data:

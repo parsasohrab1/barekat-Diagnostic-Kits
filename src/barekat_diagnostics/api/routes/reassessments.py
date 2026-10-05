@@ -1,4 +1,4 @@
-"""API پیشنهاد و اجرای reassessment."""
+"""Reassessment suggestion and execution API."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -49,7 +49,7 @@ def get_reassessment(
   service = ReassessmentService(db)
   row = service.get(reassessment_id)
   if not row:
-    raise HTTPException(status_code=404, detail="درخواست reassessment یافت نشد")
+    raise HTTPException(status_code=404, detail="Reassessment request not found")
   return service.to_response(row)
 
 

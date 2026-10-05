@@ -1,4 +1,4 @@
-"""استخراج ویژگی‌ها و ساخت مدل."""
+"""Feature extraction and model building."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""API چندمرکزی و گزارش‌های تجمیعی."""
+"""Multi-center and aggregate reports API."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session

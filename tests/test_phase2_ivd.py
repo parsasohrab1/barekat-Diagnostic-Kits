@@ -1,4 +1,4 @@
-"""تست‌های فاز ۲ — registry قفل، RBAC، HL7، drift، change control."""
+"""Phase 2 tests — locked registry, RBAC, HL7, drift, change control."""
 
 from __future__ import annotations
 

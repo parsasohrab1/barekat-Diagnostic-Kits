@@ -1,4 +1,4 @@
-"""سرویس تشخیص و گزارش."""
+"""Diagnosis and report service."""
 
 import json
 import uuid
@@ -42,7 +42,7 @@ class DiagnosisService:
     settings = get_settings()
     if not settings.require_batch_controls:
       return
-    # کنترل‌ها خودشان نیاز به اعتبار بچ ندارند
+    # The controls themselves do not require batch validity
     if sample.sample_role in {"positive_control", "negative_control"}:
       return
     if sample.batch_id:
@@ -151,7 +151,7 @@ class DiagnosisService:
   ) -> ReportApprovalResponse:
     record = self.db.query(Diagnosis).filter(Diagnosis.id == report_id).first()
     if not record:
-      raise ValueError("گزارش یافت نشد")
+      raise ValueError("Report not found")
 
     record.approval_status = body.decision
     record.approved_by = actor_id
@@ -188,7 +188,7 @@ class DiagnosisService:
     )
 
   def save_report(self, report: DiagnosisReport) -> DiagnosisReport:
-    """ذخیره گزارش از دستگاه offline بدون تحلیل مجدد."""
+    """Store a report from an offline device without re-analysis."""
     result = self.ingest_edge_report(
       report=report,
       client_report_id=getattr(report, "client_report_id", None),
@@ -209,7 +209,7 @@ class DiagnosisService:
     tenant_id: str | None = None,
     conflict_policy: str = "reject_duplicate",
   ) -> dict:
-    """همگام‌سازی idempotent با حل تعارض."""
+    """Idempotent synchronization with conflict resolution."""
     from barekat_diagnostics.models.fleet import EdgeDevice
 
     client_report_id = client_report_id or report.client_report_id
@@ -316,7 +316,7 @@ class DiagnosisService:
     self.db.commit()
 
   def submit_async(self, sample: SampleInput) -> DiagnosisJobSubmitResponse:
-    """ثبت job ناهمزمان برای تحلیل نمونه."""
+    """Register an asynchronous job for sample analysis."""
     from barekat_diagnostics.tasks.pipeline_tasks import analyze_diagnosis_task
 
     self._enforce_batch_controls(sample)

@@ -1,4 +1,4 @@
-"""تولید PDF گزارش تشخیص."""
+"""Generate the diagnosis report PDF."""
 
 from io import BytesIO
 

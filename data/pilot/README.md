@@ -1,9 +1,9 @@
-# دادهٔ پایلوت qPCR
+# qPCR Pilot Data
 
-فایل `pilot_qpcr.csv` یک مجموعهٔ کوچک (~۶۰ نمونه) با برچسب واقعی برای اعتبارسنجی Se/Sp است.
+The file `pilot_qpcr.csv` is a small set (~60 samples) with true labels for validating Se/Sp.
 
 ```bash
 python scripts/evaluate_pilot.py
-# یا
+# or
 curl -X POST http://localhost:8000/api/v1/ml/evaluate-pilot
 ```
