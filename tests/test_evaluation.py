@@ -37,3 +37,13 @@ def test_per_lot_confusion_matrix():
   for lot_eval in result.per_lot:
     cm = lot_eval.confusion_matrix
     assert cm.tp + cm.tn + cm.fp + cm.fn == lot_eval.sample_count
+
+
+def test_headline_metrics_are_out_of_fold_not_resubstitution():
+  df = generate_diagnostic_kit_data(n_samples=400, realistic=True)
+  result = evaluate_model(df)
+  assert result.evaluation_basis.startswith("out_of_fold")
+  assert result.confusion_matrix.tp + result.confusion_matrix.fn + result.confusion_matrix.tn + result.confusion_matrix.fp == len(df)
+
+  in_sample = evaluate_model(df, out_of_fold=False)
+  assert in_sample.evaluation_basis == "resubstitution"

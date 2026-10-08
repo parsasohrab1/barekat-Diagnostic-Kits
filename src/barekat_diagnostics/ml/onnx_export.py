@@ -77,7 +77,9 @@ class EdgeOnnxPredictor:
 
   def predict(self, features: dict[str, float]) -> tuple[str, float, str, float]:
     """Returns (result, confidence, version, latency_ms)."""
-    X = np.array([[features.get(c, 0.0) for c in self.feature_columns]], dtype=np.float32)
+    from barekat_diagnostics.ml.classifier import build_feature_row
+
+    X = build_feature_row(features, self.feature_columns, self.version).astype(np.float32)
     input_name = self.session.get_inputs()[0].name
 
     t0 = time.perf_counter()

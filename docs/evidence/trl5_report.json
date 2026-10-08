@@ -1,0 +1,321 @@
+{
+  "generated_at": "2026-10-07T20:47:26+00:00",
+  "environment": {
+    "python": "3.10.1",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "numpy": "2.2.6",
+    "pandas": "2.2.3",
+    "runtime_seconds": 93.6
+  },
+  "data_provenance": "SIMULATED (barekat_diagnostics.data.curves). No patient or instrument data.",
+  "criteria": {
+    "A1_ct_bias_max": 0.3,
+    "A1_ct_sd_max": 0.8,
+    "A2_clean_ntc_amplified_max": 0.005,
+    "A3_heldout_se_ci_lower_min": 0.9,
+    "A3_heldout_sp_ci_lower_min": 0.95,
+    "A4_lot_se_min": 0.9,
+    "A4_lot_sp_min": 0.95,
+    "A5_sens_ge3_copies_min": 0.9,
+    "A6_stress_se_min": 0.9,
+    "A6_stress_sp_min": 0.95,
+    "A7_e2e_agreement_min": 1.0,
+    "A7_e2e_fallback_max": 0,
+    "A8_latency_p95_ms_max": 100.0,
+    "A9_reproducible": true
+  },
+  "results": [
+    {
+      "id": "A1_ct_bias",
+      "observed": 0.272,
+      "criterion": "|bias| <= 0.3 cycles",
+      "pass": true
+    },
+    {
+      "id": "A1_ct_sd",
+      "observed": 0.639,
+      "criterion": "SD <= 0.8 cycles",
+      "pass": true
+    },
+    {
+      "id": "A2_clean_ntc",
+      "observed": 0.00333,
+      "criterion": "<= 0.005 of template-free wells called amplified",
+      "pass": true
+    },
+    {
+      "id": "A3_heldout_se_ci_lower",
+      "observed": 0.9758,
+      "criterion": "Wilson 95% lower bound >= 0.9",
+      "pass": true
+    },
+    {
+      "id": "A3_heldout_sp_ci_lower",
+      "observed": 0.9933,
+      "criterion": "Wilson 95% lower bound >= 0.95",
+      "pass": true
+    },
+    {
+      "id": "A4_lot_se_worst",
+      "observed": 0.9869,
+      "criterion": "every held-out lot >= 0.9",
+      "pass": true
+    },
+    {
+      "id": "A4_lot_sp_worst",
+      "observed": 0.9932,
+      "criterion": "every held-out lot >= 0.95",
+      "pass": true
+    },
+    {
+      "id": "A5_sens_ge3_copies",
+      "observed": 0.9945,
+      "criterion": ">= 0.9 when >=3 molecules present (n=728)",
+      "pass": true
+    },
+    {
+      "id": "A6_stress_se",
+      "observed": 0.9048,
+      "criterion": ">= 0.9 at 2x noise/drift",
+      "pass": true
+    },
+    {
+      "id": "A6_stress_sp",
+      "observed": 1.0,
+      "criterion": ">= 0.95 at 2x noise/drift",
+      "pass": true
+    },
+    {
+      "id": "A7_e2e_agreement",
+      "observed": 1.0,
+      "criterion": "pipeline output == direct model output",
+      "pass": true
+    },
+    {
+      "id": "A7_e2e_no_fallback",
+      "observed": 0,
+      "criterion": "no sample served by rule-based fallback",
+      "pass": true
+    },
+    {
+      "id": "A8_latency_p95_ms",
+      "observed": 97.8,
+      "criterion": "p95 <= 100.0 ms",
+      "pass": true
+    },
+    {
+      "id": "A9_reproducible",
+      "observed": true,
+      "criterion": "re-run gives identical features and predictions",
+      "pass": true
+    }
+  ],
+  "overall_pass": true,
+  "detail": {
+    "datasets": {
+      "train": {
+        "n": 2400,
+        "devices": [
+          "QuantStudio-5",
+          "LightCycler480",
+          "CFX96"
+        ],
+        "seed": 101,
+        "prevalence": 0.45
+      },
+      "heldout": {
+        "n": 1600,
+        "device": "RotorGene-Q",
+        "seed": 202,
+        "prevalence": 0.471
+      }
+    },
+    "ct_accuracy": {
+      "n": 1147,
+      "bias": 0.272,
+      "sd": 0.639,
+      "max_abs_error": 4.269
+    },
+    "clean_ntc": {
+      "n": 1200,
+      "amplified_rate": 0.00333,
+      "min_ct_reported": 45.0
+    },
+    "heldout_instrument": {
+      "n": 1600,
+      "tp": 744,
+      "fn": 10,
+      "tn": 845,
+      "fp": 1,
+      "sensitivity": 0.9867,
+      "se_ci": [
+        0.9758,
+        0.9928
+      ],
+      "specificity": 0.9988,
+      "sp_ci": [
+        0.9933,
+        0.9998
+      ]
+    },
+    "baseline_legacy_ct30_rule": {
+      "n": 1600,
+      "tp": 409,
+      "fn": 345,
+      "tn": 846,
+      "fp": 0,
+      "sensitivity": 0.5424,
+      "se_ci": [
+        0.5068,
+        0.5777
+      ],
+      "specificity": 1.0,
+      "sp_ci": [
+        0.9955,
+        1.0
+      ]
+    },
+    "leave_one_lot_out": {
+      "LOT-A": {
+        "n": 766,
+        "tp": 323,
+        "fn": 1,
+        "tn": 439,
+        "fp": 3,
+        "sensitivity": 0.9969,
+        "se_ci": [
+          0.9827,
+          0.9995
+        ],
+        "specificity": 0.9932,
+        "sp_ci": [
+          0.9802,
+          0.9977
+        ]
+      },
+      "LOT-B": {
+        "n": 802,
+        "tp": 363,
+        "fn": 2,
+        "tn": 436,
+        "fp": 1,
+        "sensitivity": 0.9945,
+        "se_ci": [
+          0.9802,
+          0.9985
+        ],
+        "specificity": 0.9977,
+        "sp_ci": [
+          0.9872,
+          0.9996
+        ]
+      },
+      "LOT-C": {
+        "n": 832,
+        "tp": 378,
+        "fn": 5,
+        "tn": 449,
+        "fp": 0,
+        "sensitivity": 0.9869,
+        "se_ci": [
+          0.9698,
+          0.9944
+        ],
+        "specificity": 1.0,
+        "sp_ci": [
+          0.9915,
+          1.0
+        ]
+      }
+    },
+    "detection_by_actual_copies": {
+      "1-1": {
+        "n": 10,
+        "detection_rate": 0.6,
+        "ci": [
+          0.313,
+          0.832
+        ]
+      },
+      "2-2": {
+        "n": 16,
+        "detection_rate": 0.875,
+        "ci": [
+          0.64,
+          0.965
+        ]
+      },
+      "3-5": {
+        "n": 57,
+        "detection_rate": 0.947,
+        "ci": [
+          0.856,
+          0.982
+        ]
+      },
+      "6-10": {
+        "n": 75,
+        "detection_rate": 0.987,
+        "ci": [
+          0.928,
+          0.998
+        ]
+      },
+      "11-100": {
+        "n": 120,
+        "detection_rate": 1.0,
+        "ci": [
+          0.969,
+          1.0
+        ]
+      },
+      "101-inf": {
+        "n": 476,
+        "detection_rate": 1.0,
+        "ci": [
+          0.992,
+          1.0
+        ]
+      }
+    },
+    "note_1_2_copies": "1-2 molecule detection is reported but not gated: with so little template the curve is often indistinguishable from late artifacts.",
+    "stress_2x_noise_2x_drift": {
+      "n": 1600,
+      "tp": 627,
+      "fn": 66,
+      "tn": 907,
+      "fp": 0,
+      "sensitivity": 0.9048,
+      "se_ci": [
+        0.8806,
+        0.9244
+      ],
+      "specificity": 1.0,
+      "sp_ci": [
+        0.9958,
+        1.0
+      ]
+    },
+    "end_to_end": {
+      "n": 250,
+      "agreement_with_direct_model": 1.0,
+      "rule_based_fallbacks": 0,
+      "model_version": "curve-v1"
+    },
+    "latency_ms": {
+      "p50": 82.77,
+      "p95": 97.8,
+      "max": 425.51,
+      "note": "includes feature extraction, QC, model, report build; model unpickled once; this host, not a target device"
+    },
+    "onnx_edge": {
+      "n": 200,
+      "parity_with_sklearn": 1.0,
+      "model_latency_p95_ms": 0.208
+    },
+    "reproducibility": {
+      "feature_hash": "5f927acb021f9ec4",
+      "identical_rerun": true
+    }
+  }
+}

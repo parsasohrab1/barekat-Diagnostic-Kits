@@ -311,8 +311,12 @@ def dataset_hash(df) -> str:
 
   if not isinstance(df, pd.DataFrame):
     return ""
-  payload = f"{len(df)}:{df['True_Status'].sum() if 'True_Status' in df.columns else 0}"
-  return hashlib.sha256(payload.encode()).hexdigest()[:16]
+  # content hash: row count + positives alone would collide for distinct datasets
+  cols = sorted(c for c in df.columns if df[c].map(lambda v: isinstance(v, (list, dict))).sum() == 0)
+  row_hashes = pd.util.hash_pandas_object(df[cols], index=False).values
+  h = hashlib.sha256(",".join(cols).encode())
+  h.update(row_hashes.tobytes())
+  return h.hexdigest()[:16]
 
 
 def file_sha256(path: Path) -> str:

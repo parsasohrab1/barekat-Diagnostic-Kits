@@ -10,7 +10,7 @@ from sklearn.metrics import (
   roc_auc_score,
   roc_curve,
 )
-from sklearn.model_selection import GroupKFold
+from sklearn.model_selection import GroupKFold, StratifiedKFold
 
 from barekat_diagnostics.ml.features import build_model, get_feature_columns
 from barekat_diagnostics.schemas import (
@@ -88,59 +88,84 @@ def _prepare_xy(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, list[str]]:
   return X, y, all_features
 
 
+def _out_of_fold_predictions(
+  df: pd.DataFrame, X: np.ndarray, y: np.ndarray, group_col: str
+) -> tuple[np.ndarray, np.ndarray, list[CrossValidationFold], str]:
+  """Pooled predictions where every row is scored by a model that never saw it.
+
+  Splits by device when there are >= 2 devices (tests transfer to an unseen
+  instrument), otherwise stratified k-fold.
+  """
+  pred = np.zeros(len(y), dtype=int)
+  proba = np.zeros(len(y), dtype=float)
+  folds: list[CrossValidationFold] = []
+  if group_col in df.columns and df[group_col].nunique() > 1:
+    groups = df[group_col].values
+    splitter = GroupKFold(n_splits=min(5, df[group_col].nunique())).split(X, y, groups)
+    basis = "out_of_fold_by_group"
+  else:
+    n_splits = max(2, min(5, int(np.bincount(y.astype(int)).min())))
+    splitter = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42).split(X, y)
+    basis = "out_of_fold_stratified"
+  for fold_idx, (train_idx, test_idx) in enumerate(splitter, start=1):
+    fold_model = build_model()
+    fold_model.fit(X[train_idx], y[train_idx])
+    pred[test_idx] = fold_model.predict(X[test_idx])
+    proba[test_idx] = fold_model.predict_proba(X[test_idx])[:, 1]
+    m = _compute_ivd_metrics(y[test_idx], pred[test_idx], proba[test_idx])
+    folds.append(CrossValidationFold(
+      fold=fold_idx,
+      group=str(df.iloc[test_idx[0]][group_col]) if group_col in df.columns else f"fold-{fold_idx}",
+      accuracy=m["accuracy"],
+      sensitivity=m["sensitivity"].value,
+      specificity=m["specificity"].value,
+      roc_auc=m["roc_auc"],
+    ))
+  return pred, proba, folds, basis
+
+
 def evaluate_model(
   df: pd.DataFrame,
   model=None,
   *,
   group_col: str = "Lab_Device",
   lot_col: str = "Kit_Lot",
+  out_of_fold: bool = True,
 ) -> IVDEvaluationResult:
-  """Full IVD evaluation with cross-validation and confusion matrix per lot."""
+  """IVD evaluation. By default the headline and per-lot metrics are out-of-fold
+  (grouped by device), so quality gates cannot pass on resubstitution numbers.
+
+  ``out_of_fold=False`` scores ``model`` on ``df`` directly — only meaningful when
+  ``df`` is data the model never trained on; the result is labelled accordingly.
+  """
   X, y, features = _prepare_xy(df)
-  if model is None:
-    model = build_model()
-    model.fit(X, y)
+  y = np.asarray(y).astype(int)
 
-  y_pred = model.predict(X)
-  y_proba = model.predict_proba(X)[:, 1] if hasattr(model, "predict_proba") else None
+  if out_of_fold:
+    y_pred, y_proba, cv_folds, basis = _out_of_fold_predictions(df, X, y, group_col)
+  else:
+    if model is None:
+      model = build_model()
+      model.fit(X, y)
+    y_pred = model.predict(X)
+    y_proba = model.predict_proba(X)[:, 1] if hasattr(model, "predict_proba") else None
+    cv_folds = []
+    basis = "resubstitution"
+    if group_col in df.columns and df[group_col].nunique() > 1:
+      _, _, cv_folds, _ = _out_of_fold_predictions(df, X, y, group_col)
   overall = _compute_ivd_metrics(y, y_pred, y_proba)
-
-  cv_folds: list[CrossValidationFold] = []
-  groups = None
-  gkf = None
-  if group_col in df.columns and df[group_col].nunique() > 1:
-    groups = df[group_col].values
-    gkf = GroupKFold(n_splits=min(5, df[group_col].nunique()))
-
-  if groups is not None and gkf is not None:
-    fold_idx = 0
-    for train_idx, test_idx in gkf.split(X, y, groups):
-      fold_idx += 1
-      fold_model = build_model()
-      fold_model.fit(X[train_idx], y[train_idx])
-      fold_pred = fold_model.predict(X[test_idx])
-      fold_proba = fold_model.predict_proba(X[test_idx])[:, 1]
-      fold_metrics = _compute_ivd_metrics(y[test_idx], fold_pred, fold_proba)
-      batch_name = str(df.iloc[test_idx[0]][group_col])
-      cv_folds.append(CrossValidationFold(
-        fold=fold_idx,
-        group=batch_name,
-        accuracy=fold_metrics["accuracy"],
-        sensitivity=fold_metrics["sensitivity"].value,
-        specificity=fold_metrics["specificity"].value,
-        roc_auc=fold_metrics["roc_auc"],
-      ))
 
   per_lot: list[PerLotEvaluation] = []
   if lot_col in df.columns:
-    for lot, lot_df in df.groupby(lot_col):
-      lot_X, lot_y, _ = _prepare_xy(lot_df)
-      lot_pred = model.predict(lot_X)
-      lot_proba = model.predict_proba(lot_X)[:, 1] if hasattr(model, "predict_proba") else None
-      lot_metrics = _compute_ivd_metrics(lot_y, lot_pred, lot_proba)
+    lots = df[lot_col].values
+    for lot in pd.unique(lots):
+      mask = lots == lot
+      lot_metrics = _compute_ivd_metrics(
+        y[mask], y_pred[mask], y_proba[mask] if y_proba is not None else None
+      )
       per_lot.append(PerLotEvaluation(
         kit_lot=str(lot),
-        sample_count=len(lot_df),
+        sample_count=int(mask.sum()),
         confusion_matrix=lot_metrics["confusion_matrix"],
         sensitivity=lot_metrics["sensitivity"].value,
         specificity=lot_metrics["specificity"].value,
@@ -158,4 +183,5 @@ def evaluate_model(
     cross_validation=cv_folds,
     per_lot=per_lot,
     feature_columns=features,
+    evaluation_basis=basis,
   )

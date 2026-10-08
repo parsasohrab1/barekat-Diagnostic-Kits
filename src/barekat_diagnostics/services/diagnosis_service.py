@@ -4,11 +4,12 @@ import json
 import uuid
 from datetime import datetime, timezone
 
+import structlog
 from sqlalchemy.orm import Session
 
 from barekat_diagnostics.core.config import get_settings
 from barekat_diagnostics.core.storage import StorageService, get_storage
-from barekat_diagnostics.ml.classifier import DiagnosticPredictor
+from barekat_diagnostics.ml.classifier import DiagnosticPredictor, FeatureMismatchError
 from barekat_diagnostics.models.sample import BatchJob, Diagnosis, DiagnosisJob
 from barekat_diagnostics.pipeline.runner import process_sample, report_to_json
 from barekat_diagnostics.reports.pdf import generate_report_pdf
@@ -25,6 +26,8 @@ from barekat_diagnostics.schemas import (
 from barekat_diagnostics.services.audit_trail import AuditTrailService
 from barekat_diagnostics.services.batch_service import BatchService, BatchValidationError
 from barekat_diagnostics.services.sample_service import SampleService
+
+logger = structlog.get_logger(__name__)
 
 
 class DiagnosisService:
@@ -64,13 +67,14 @@ class DiagnosisService:
     def predict_fn(features):
       try:
         return predictor.predict(features, sample_id=sample.sample_id)
-      except FileNotFoundError:
+      except (FileNotFoundError, FeatureMismatchError) as exc:
+        logger.warning("model_unavailable_using_rule_based", sample_id=sample.sample_id, error=str(exc))
         return predictor.predict_rule_based(features)
 
     def explain_fn(features):
       try:
         return predictor.explain(features, sample_id=sample.sample_id)
-      except FileNotFoundError:
+      except (FileNotFoundError, FeatureMismatchError):
         return None
 
     report = process_sample(sample, predict_fn, calibration=calibration, explain_fn=explain_fn)

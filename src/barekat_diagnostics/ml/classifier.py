@@ -100,6 +100,26 @@ def train_classifier(
   return model, metrics
 
 
+class FeatureMismatchError(ValueError):
+  """Raised when the pipeline cannot supply the columns a model was trained on."""
+
+  def __init__(self, missing: list[str], version: str) -> None:
+    self.missing = missing
+    self.version = version
+    super().__init__(f"model {version} requires features not produced by the pipeline: {missing}")
+
+
+def build_feature_row(
+  features: dict[str, float], columns: list[str], version: str = "?"
+) -> np.ndarray:
+  """Map pipeline features onto model columns (case-insensitive); never zero-fill silently."""
+  lowered = {k.lower(): v for k, v in features.items()}
+  missing = [c for c in columns if c.lower() not in lowered]
+  if missing:
+    raise FeatureMismatchError(missing, version)
+  return np.array([[float(lowered[c.lower()]) for c in columns]])
+
+
 class DiagnosticPredictor:
   """Prediction with registry and A/B test support."""
 
@@ -131,7 +151,7 @@ class DiagnosticPredictor:
     model = artifact["model"]
     columns = artifact["feature_columns"]
 
-    X = np.array([[features.get(c, 0.0) for c in columns]])
+    X = build_feature_row(features, columns, version)
     proba = model.predict_proba(X)[0]
     pred = int(model.predict(X)[0])
 

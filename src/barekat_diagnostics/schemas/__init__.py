@@ -515,6 +515,7 @@ class IVDEvaluationResult(BaseModel):
   cross_validation: list[CrossValidationFold] = Field(default_factory=list)
   per_lot: list[PerLotEvaluation] = Field(default_factory=list)
   feature_columns: list[str] = Field(default_factory=list)
+  evaluation_basis: str = "resubstitution"  # out_of_fold_by_group | out_of_fold_stratified | resubstitution
 
 
 class ModelVersionResponse(BaseModel):
